@@ -37,6 +37,11 @@ StCanIdName	g_can_id_table[] =
 {
 	{0x058,		"TBOX_2"}
 	,{0x2B1,	"TBOX_3"}
+	,{0x2AC,	"BCM_2"}
+	,{0x2A6,	"PKE_2"}
+	,{0x2C8,	"AIC_1"}
+	,{0x2AD,	"DATC_3"}
+	,{0xE3,		"GW_18"}
 };
 StCanSignal	g_signal_table[] = 
 {
@@ -54,6 +59,26 @@ StCanSignal	g_signal_table[] =
 	,{"SeatHeatCtrlReq_FL_TBOX",	0x2B1,	37,3,	1,2}
 	,{"RearWindowHeatCtrlReq_Tbox",	0x2B1,	42,2,	1,2}
 	,{"EngineStartTimeSet",			0x2B1,	44,3,	1,7}
+	//BCM_2(0x2AC)
+	,{"IgnKeyPos_BCM",				0x2AC,	1,3,	1,3}
+	,{"AntiTheftSt",				0x2AC,	41,2,	1,2}
+	//PKE_2(0x2A6)
+	,{"StartSource",				0x2A6,	32,3,	1,3}
+	,{"DecryptResult",				0x2A6,	37,2,	1,2}
+	//AIC_1(0x2C8)
+	,{"DriverSeatHeatFeedback",		0x2C8,	16,3,	1,4}
+	,{"PassengerSeatHeatFeedback",	0x2C8,	19,3,	1,4}
+	//DATC_3(0x2AD)
+	,{"PowerCtrl_FeedBack",			0x2AD,	0,3,	1,4}
+	,{"AutoCtrl_FeedBack",			0x2AD,	3,3,	1,4}
+	,{"ExpectTempCtrl_FeedBack_FR",	0x2AD,	6,2,	1,2}
+	,{"BlowModeCtrl_FeedBack",		0x2AD,	8,3,	1,6}
+	,{"BlowLevelCtrl_FeedBack",		0x2AD,	11,4,	1,8}
+	,{"RecirculationCtrl_FeedBack",	0x2AD,	16,3,	1,4}
+	,{"CompressorCtrl_FeedBack",	0x2AD,	19,3,	1,4}
+	,{"RearWindowHeatCtrlFeedback",	0x2AD,	24,3,	1,4}
+	//GW_18(0xE3)
+	,{"EngineSt_EMS",				0xE3,	32,3,	1,7}
 };
 map<string,StCanSignal*>	g_signal_map;
 map<u16,string>	g_can_id_map;
