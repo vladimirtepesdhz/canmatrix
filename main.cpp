@@ -106,6 +106,7 @@ bool_t	CanMatrixInit()
 int	main(int argc,char * argv[])
 {
 	int iter=0;
+	int len = 0;
 	char buffer[INPUT_BUFFER_MAX];
 
 	CanMatrixInit();
@@ -120,11 +121,25 @@ int	main(int argc,char * argv[])
 			while(0 == feof(file))
 			{
 				buffer[0] = 0;
+#if 0
 				fgets(buffer,sizeof(buffer),file);
 				if(0 == buffer[0] || '\n' == buffer[0])
 					continue;
-				buffer[strlen(buffer) - 1] = 0;
-
+				len = strlen(buffer);
+				if(len >= 2)
+				{
+					if('\r' == buffer[len - 2] || '\n' == buffer[len - 2])
+						buffer[len - 2] = 0;
+				}
+				if(len >= 1)
+				{
+					if('\r' == buffer[len - 1] || '\n' == buffer[len - 1])
+						buffer[len - 1] = 0;
+				}
+#else
+				fscanf(file,"%s",buffer);
+				//fprintf(stdout,"%s\n",buffer);
+#endif
 				TySignal i = g_signal_map.find(buffer);
 				if(g_signal_map.end() != i)
 				{
@@ -148,7 +163,7 @@ int	main(int argc,char * argv[])
 		buffer[0] = 0;
 		fgets(buffer,sizeof(buffer),stdin);
 		if(0 == buffer[0]||'\n' == buffer[0])
-			break;
+			continue;
 		str_line = buffer;
 
 		//分解行数据
@@ -156,7 +171,7 @@ int	main(int argc,char * argv[])
 		while(NULL != p_str)
 		{
 			str_split.push_back(p_str);
-			p_str = strtok(NULL," \t");
+			p_str = strtok(NULL," \t\r");
 		}
 
 		//解析行数据  由时间戳，CAN id ,8字节数据组成
