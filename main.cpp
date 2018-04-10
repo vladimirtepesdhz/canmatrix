@@ -10,8 +10,10 @@
 using	namespace	std;
 
 #include "bits.h"
+#include "json/js_parser.h"
 
 #define	numof(a)	(sizeof(a)/sizeof((a)[0]))
+
 typedef	struct 	_StCanIdName
 {
 	u16 can_id;
@@ -105,6 +107,7 @@ bool_t	CanMatrixInit()
 
 int	main(int argc,char * argv[])
 {
+#if 0
 	int iter=0;
 	int len = 0;
 	char buffer[INPUT_BUFFER_MAX];
@@ -138,6 +141,8 @@ int	main(int argc,char * argv[])
 				}
 #else
 				fscanf(file,"%s",buffer);
+				if(0 == buffer[0] || '\n' == buffer[0])
+					continue;
 				//fprintf(stdout,"%s\n",buffer);
 #endif
 				TySignal i = g_signal_map.find(buffer);
@@ -221,7 +226,77 @@ int	main(int argc,char * argv[])
 		}
 	}
 
+#endif
+	if(argc > 1)
+	{
+		CJsInput input;
+		CJsToken token;
 
+		if(!input.Init(argv[1]))
+		{
+			fprintf(stdout,"无法打开文件%s\n",argv[1]);
+			return	1;
+		}
+		token.Init(&input);
+		while(token.ParseNext())
+		{
+			fprintf(stdout,"line:%d\t",token.GetLineNum());
+			switch(token.GetType())
+			{
+				case	CJsToken::JS_TOKEN_NULL:
+				{
+					fprintf(stdout,"JS_TOKEN_NULL\n");
+				}
+				break;
 
+				case	CJsToken::JS_TOKEN_STRBLK:
+				{
+					fprintf(stdout,"JS_TOKEN_STRBLK %s\n",token.GetStr().c_str());
+				}
+				break;
+
+				case	CJsToken::JS_TOKEN_COLON:
+				{
+					fprintf(stdout,"JS_TOKEN_COLON :\n");
+				}
+				break;
+
+				case	CJsToken::JS_TOKEN_LEFT_BRACE:
+				{
+					fprintf(stdout,"JS_TOKEN_LEFT_BRACE {\n");
+				}
+				break;
+
+				case	CJsToken::JS_TOKEN_RIGHT_BRACE:
+				{
+					fprintf(stdout,"JS_TOKEN_RIGHT_BRACE }\n");
+				}
+				break;
+
+				case	CJsToken::JS_TOKEN_LEFT_BRACKET:
+				{
+					fprintf(stdout,"JS_TOKEN_LEFT_BRACKET [\n");
+				}
+				break;
+
+				case	CJsToken::JS_TOKEN_RIGHT_BRACKET:
+				{
+					fprintf(stdout,"JS_TOKEN_RIGHT_BRACKET ]\n");
+				}
+				break;
+
+				case	CJsToken::JS_TOKEN_COMMA:
+				{
+					fprintf(stdout,"JS_TOKEN_COMMA ,\n");
+				}
+				break;
+
+				default:
+				{
+					fprintf(stdout,"JS_TOKEN_ERROR\n");
+				}
+			}
+		}
+	}
 	return	0;
 }
