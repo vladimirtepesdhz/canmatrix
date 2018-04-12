@@ -1,0 +1,58 @@
+"var1" : 1234,
+'var2' = "{sldfk}[jlskdfj]dk你好啊！:！,, ,   \"sdfksdflkjsdfkl\'123\"",
+'var3' : 
+{
+	"sub1":truefalse,
+	sub2 : ttl}
+,var4 : [1,2,3,4],A:3,B:5,
+var5:{cc:{sub2:kkk ,sub5:ABCdef, "123abc":aaa}}
+,var6:
+{
+	sub6:
+	{
+		name:wangwei,
+		'age':35
+		,"sex':'male'
+	}
+	,
+	collect:
+	{
+		a =
+		[
+			"loli.jpg"
+			,
+			true
+			,
+			42
+			,
+			{
+				a = 18,
+				bb = 8
+			}
+			,
+			{
+				qq = 1
+				,passwd = 2354
+			}
+		]
+	}
+}
+,
+actor:
+[ 
+{ 
+"name":"张国立", 
+"sex":"男" ,
+"email":"zhangguoli@123.com" 
+}, 
+{ 
+"name":"张铁林" ,
+"sex":"男" ,
+"email":"zhangtieli@123.com" 
+}, 
+{ 
+"name":"邓婕", 
+"sex":"女" ,
+"email":"zhenjie@123.com" 
+} 
+]

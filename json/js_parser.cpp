@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory.h>
 
 
 #include "js_parser.h"
@@ -170,6 +171,16 @@ bool	CJsToken::IsNumChar(int ch)
 		return	true;
 	return	false;
 }
+bool	CJsToken::IsHexChar(int ch)
+{
+	if(IsNumChar(ch))
+		return	true;
+	if(ch >= 'a' && ch <= 'f')
+		return	true;
+	if(ch >= 'A' && ch <= 'F')
+		return	true;
+	return	false;
+}
 bool	CJsToken::IsVarChar(int ch)
 {
 	if(IsAlphaChar(ch))
@@ -198,22 +209,27 @@ int	CJsToken::ParseEmpty()
 	while(!input->IsEOF())
 	{
 		cur_char = input->GetChar();
-		if(!IsEmptyChar(cur_char))
+		if(EOF != cur_char && !IsEmptyChar(cur_char))
+		{
+			input->FallbackChar();
 			return cur_char;
+		}
 	}
 	return	EOF;
 }
 bool	CJsToken::ParseNext()
 {
 	int cur_char = 0;
+
 	cur_char = ParseEmpty();
+	pos = input->GetPos();
+	line_num = input->GetLineNum();
 	if(EOF == cur_char)
 	{
 		type = JS_TOKEN_NULL;
 		return	false;
 	}
-	pos = input->GetPos();
-	line_num = input->GetLineNum();
+	cur_char = input->GetChar();
 	if('\'' == cur_char || '\"' == cur_char)
 	{
 		str = "";
@@ -274,6 +290,7 @@ bool	CJsToken::ParseNext()
 			if(('\'' == cur_char)
 				||('\"' == cur_char)
 				||(':' == cur_char)
+				||('=' == cur_char)
 				||('{' == cur_char)
 				||('}' == cur_char)
 				||('[' == cur_char)
@@ -344,11 +361,12 @@ bool	CJsParser::ParseReset()
 {
 	CStackInfo * p_cur = 0;
 
+	if(!IsValid())
+		return	false;
+
 	p_cur = &stack.back();
 	input.Seek(p_cur->start_pos);
 	input.SetLineNum(p_cur->start_line);
-	p_cur->cur_pos = p_cur->start_pos;
-	p_cur->cur_line = p_cur->line_num;
 
 	index = -1;
 	var = "";
@@ -358,50 +376,123 @@ bool	CJsParser::ParseReset()
 	return	true;
 }
 
+bool	CJsParser::ParseRoot()
+{
+	stack.resize(1);
+
+	return	ParseReset();
+}
+
 bool	CJsParser::ParseNext()
 {
 	CStackInfo * p_cur = 0;
 	CJsToken token;
 
+	if(!IsValid())
+		return	false;
+
 	p_cur = &stack.back();
 	token.Init(&input);
 
-	if(JS_PARSE_OBJ == parse_type || JS_PARSE_ARRAY == parse_type)
-		TokenPass(parse_type);
+	if(JS_PARSE_OBJ == parse_type)
+		TokenPass(CJsToken::JS_TOKEN_LEFT_BRACE);
+	else if(JS_PARSE_ARRAY == parse_type)
+		TokenPass(CJsToken::JS_TOKEN_LEFT_BRACKET);
 
 	var = "";
-	parse_type = JS_PARSE_ERROR;
+	parse_type = JS_PARSE_NULL;
 	value = "";
 
-	if(JS_PARSE_OBJ == p_cur->type)
-	{
-		if(!token.ParseNext())
-			return	false;
-		if(CJsToken::JS_TOKEN_STRBLK != token.GetType())	//解析变量名
-			return	false;
-		var = token.GetStr();
-
-		if(!token.ParseNext())
-			return	false;
-		if(CJsToken::JS_TOKEN_COLON != token.GetType())		//解析冒号/等于号
-			return	false;
-
-	}
-	else if(JS_PARSE_ARRAY == p_cur->type)
+	if(JS_PARSE_OBJ == p_cur->parse_type)
 	{
 		if(-1 != index)
 		{
 			if(!token.ParseNext())
+			{
+				parse_type = JS_PARSE_END;
+				input.Seek(token.GetPos());
+				input.SetLineNum(token.GetLineNum());
 				return	false;
-			if(CJsToken::JS_TOKEN_COMMA != token.GetType())
+			}
+			if(CJsToken::JS_TOKEN_COMMA != token.GetType())	//解析逗号
+			{
+				if(CJsToken::JS_TOKEN_RIGHT_BRACE == token.GetType())
+					parse_type = JS_PARSE_END;
+				else
+					parse_type = JS_PARSE_ERROR;
+				input.Seek(token.GetPos());
+				input.SetLineNum(token.GetLineNum());
 				return	false;
+			}
+		}
+
+		if(!token.ParseNext())
+		{
+			parse_type = JS_PARSE_END;
+			input.Seek(token.GetPos());
+			input.SetLineNum(token.GetLineNum());
+			return	false;
+		}
+		if(CJsToken::JS_TOKEN_STRBLK != token.GetType())	//解析变量名
+		{
+			if(CJsToken::JS_TOKEN_RIGHT_BRACE == token.GetType())
+				parse_type = JS_PARSE_END;
+			else
+				parse_type = JS_PARSE_ERROR;
+			input.Seek(token.GetPos());
+			input.SetLineNum(token.GetLineNum());
+			return	false;
+		}
+		var = token.GetStr();
+
+		if(!token.ParseNext())
+		{
+			parse_type = JS_PARSE_ERROR;
+			input.Seek(token.GetPos());
+			input.SetLineNum(token.GetLineNum());
+			return	false;
+		}
+		if(CJsToken::JS_TOKEN_COLON != token.GetType())		//解析冒号/等于号
+		{
+			parse_type = JS_PARSE_ERROR;
+			input.Seek(token.GetPos());
+			input.SetLineNum(token.GetLineNum());
+			return	false;
+		}
+	}
+	else if(JS_PARSE_ARRAY == p_cur->parse_type)
+	{
+		if(-1 != index)
+		{
+			if(!token.ParseNext())
+			{
+				parse_type = JS_PARSE_END;
+				input.Seek(token.GetPos());
+				input.SetLineNum(token.GetLineNum());
+				return	false;
+			}
+			if(CJsToken::JS_TOKEN_COMMA != token.GetType())	//解析逗号
+			{
+				if(CJsToken::JS_TOKEN_RIGHT_BRACKET == token.GetType())
+					parse_type = JS_PARSE_END;
+				else
+					parse_type = JS_PARSE_ERROR;
+				input.Seek(token.GetPos());
+				input.SetLineNum(token.GetLineNum());
+				return	false;
+			}
 		}
 	}
 	else
 		return	false;
 
 	if(!token.ParseNext())
+	{
+		parse_type = JS_PARSE_ERROR;
+		input.Seek(token.GetPos());
+		input.SetLineNum(token.GetLineNum());
 		return	false;
+	}
 	switch(token.GetType())					
 	{
 		case	CJsToken::JS_TOKEN_STRBLK:	//单值变量
@@ -417,26 +508,356 @@ bool	CJsParser::ParseNext()
 		}
 		break;
 
-		case	CJsToken::JS_TOKEN_LEFT_BRACE:	//数组变量
+		case	CJsToken::JS_TOKEN_LEFT_BRACKET:	//数组变量
 		{
 			parse_type = JS_PARSE_ARRAY;
 		}
 		break;
+
+		default:
+		{
+			parse_type = JS_PARSE_ERROR;
+			input.Seek(token.GetPos());
+			input.SetLineNum(token.GetLineNum());
+			return	false;
+		}
 	}
 	++index;
-	p_cur->cur_pos = input.GetPos();
-	p_cur->cur_line = input.GetLineNum();
 
 	return	true;
 }
 
-bool	CJsParser::ParseSub()
+bool	CJsParser::ParseSub()	//进入下层
 {
+	CStackInfo si;
+
+	if(!IsValid())
+		return	false;
+
+	if(JS_PARSE_OBJ != parse_type && JS_PARSE_ARRAY != parse_type)
+		return	false;
+
+	si.start_pos = input.GetPos();
+	si.start_line = input.GetLineNum();
+	si.index = index;
+	si.var = var;
+	si.parse_type = parse_type;
+	stack.push_back(si);
+
+	index = -1;
+	var = "";
+	parse_type = JS_PARSE_NULL;
+	value = "";
+
 	return	true;
 }
 
-bool	CJsParser::ParseUpper()
+bool	CJsParser::ParseUpper()	//返回上层
 {
+	CStackInfo * p = 0;
+
+	if(!IsValid())
+		return	false;
+
+	if(1 == stack.size())	//到顶了
+		return	false;
+
+	p = &stack.back();
+	parse_type = p->parse_type;
+	var = p->var;
+	index = p->index;
+	input.Seek(p->start_pos);
+	input.SetLineNum(p->start_line);
+
+	stack.pop_back();
+
 	return	true;
 }
 
+bool	CJsParser::FindVar(char const * var_name)
+{
+	if(!IsValid())
+		return	false;
+	if(JS_PARSE_OBJ != stack.back().parse_type)
+		return	false;
+	ParseReset();
+	while(ParseNext())
+	{
+		if(var == var_name)
+			return	true;
+	}	
+	return	false;
+}
+
+bool	CJsParser::FindIndex(int idx)
+{
+	if(!IsValid())
+		return	false;
+	if(JS_PARSE_ARRAY != stack.back().parse_type)
+		return	false;
+	ParseReset();
+	while(ParseNext())
+	{
+		if(idx == index)
+			return	true;
+	}
+	return	false;
+}
+
+
+
+char const *	CJsParser::ParseSplit(char const * path_name,string * p_var,int * p_index)
+{
+	char const * pstr = path_name;
+
+	*p_var = "";
+	*p_index = -1;
+	while(*pstr && CJsToken::IsEmptyChar(*pstr))
+		++pstr;
+	if('.' == *pstr)
+	{
+		++pstr;
+	}
+	while(*pstr && CJsToken::IsEmptyChar(*pstr))
+		++pstr;
+	if('\'' == *pstr || '\"' == *pstr)
+	{
+		++pstr;
+		while(*pstr && '\'' != *pstr && '\"' != *pstr)
+		{
+			p_var->push_back(*pstr);
+			++pstr;
+		}
+		if('\'' == *pstr || '\"' == *pstr)
+		{
+			++pstr;
+		}
+	}
+	else if('[' == *pstr)
+	{
+		++pstr;
+		while(*pstr && CJsToken::IsEmptyChar(*pstr))
+			++pstr;
+		if('0' == pstr[0] && ('x' == pstr[1] || 'X' == pstr[1]))	//16进制
+		{
+			*p_var += "0x";
+			pstr += 2;
+			while(CJsToken::IsHexChar(*pstr))
+			{
+				p_var->push_back(*pstr);
+				++pstr;
+			}
+			*p_index = strtoul(p_var->c_str(),NULL,16);
+		}
+		else 	//10进制
+		{
+			while(CJsToken::IsNumChar(*pstr))
+			{
+				p_var->push_back(*pstr);
+				++pstr;
+			}
+			*p_index = strtoul(p_var->c_str(),NULL,10);
+		}
+		while(*pstr && CJsToken::IsEmptyChar(*pstr))
+			++pstr;
+		if(']' == *pstr)
+			++pstr;
+	}
+	else if(!CJsToken::IsEmptyChar(*pstr))
+	{
+		while(*pstr 
+				&&(!CJsToken::IsEmptyChar(*pstr))
+				&&('.' != *pstr)
+				&&('\''!= *pstr)
+				&&('\"'!= *pstr)
+				&&('[' != *pstr)
+				&&(']' != *pstr))
+		{
+			p_var->push_back(*pstr);
+			++pstr;
+		}
+	}
+	return	pstr;
+}
+
+bool	CJsParser::FindPath(char const * path_name)
+{
+	string	var_name;
+	int	idx;
+	int step = 0;
+
+	char const * pstr = path_name;
+	if(!IsValid())
+		return	false;
+	if(!ParseRoot())
+		return	false;
+	while(*pstr)
+	{
+		pstr = ParseSplit(pstr,&var_name,&idx);
+		if(-1 == idx && "" == var_name)
+			break;
+		if(step)
+		{
+			if(!ParseSub())
+				return	false;
+		}
+		if(-1 != idx)
+		{
+			if(!FindIndex(idx))
+				return	false;
+		}
+		else if("" != var_name)
+		{
+			if(!FindVar(var_name.c_str()))
+				return	false;
+		}
+		++step;
+	}
+	return	true;
+}
+
+
+bool	CJsWriter::Init(char const * filename)
+{
+	FILE * f = NULL;
+
+	if(!filename)
+		return	false;
+
+	Release();
+	f = fopen(filename,"wb");
+	if(NULL == f)
+		return	false;
+	file = f;
+	type = JS_WRITE_FILEPATH;
+	return	true;
+}
+
+bool	CJsWriter::Init(FILE * filehandle)
+{
+	if(!filehandle)
+		return	false;
+	Release();
+	file = filehandle;
+	type = JS_WRITE_FILEHANDLE;
+	return	true;
+}
+
+bool	CJsWriter::Init(unsigned char * p,int size)
+{
+	if(NULL == p || size <= 0)
+		return	false;
+	Release();
+	pdata = p;
+	data_size = size;
+	type = JS_WRITE_DATABUF;
+	return	true;
+}
+
+void	CJsWriter::Release()
+{
+	if(JS_WRITE_FILEPATH == type)
+	{
+		if(file)
+			fclose(file);
+	}
+	type = JS_WRITE_NONE;
+	file = 0;
+	pdata = 0;
+	data_size = 0;
+	js_str = "";
+	indent = "";
+	index = 0;
+}
+
+void	CJsWriter::WriteVar(char const * var_name)
+{
+	js_str += indent;
+	js_str += "\"";
+	js_str += var_name; 
+	js_str += "\" : ";
+}
+void	CJsWriter::WriteValStr(char const * val_str)
+{
+	js_str += "\"";
+	while(*val_str)
+	{
+		if('\"' == *val_str)
+		{
+			js_str += "\\\"";
+		}
+		else if('\'' == *val_str)
+		{
+			js_str += "\\\'";
+		}
+		else
+			js_str.push_back(*val_str);
+		++val_str;
+	}
+	js_str += "\" ";
+}
+void	CJsWriter::WriteArrayValStr(char const * val_str)
+{
+	js_str += indent;
+	WriteValStr(val_str);
+}
+void	CJsWriter::WriteComma()
+{
+	js_str += ",\n";
+}
+void	CJsWriter::WriteLeftBrace()
+{
+	js_str += "\n";
+	js_str += indent;
+	js_str += "{\n";
+	indent.push_back('\t');
+}
+void	CJsWriter::WriteLeftBracket()
+{
+	js_str += "\n";
+	js_str += indent;
+	js_str += "[\n";
+	indent.push_back('\t');
+}
+void	CJsWriter::WriteRightBrace()
+{
+	if(indent.length())
+		indent.erase(indent.end()-1);
+	js_str += "\n";
+	js_str += indent;
+	js_str += "}\n";
+}
+void	CJsWriter::WriteRightBracket()
+{
+	if(indent.length())
+		indent.erase(indent.end()-1);
+	js_str += "\n";
+	js_str += indent;
+	js_str += "]\n";
+}
+
+bool	CJsWriter::Flush()
+{
+	if(JS_WRITE_DATABUF == type)
+	{
+		int wcnt = 0;
+		wcnt = js_str.length();
+		if(wcnt >= data_size)
+			wcnt = data_size -1;
+		memcpy(pdata,js_str.c_str(),wcnt);
+		pdata[wcnt] = 0;
+		return	true;
+	}
+	else if(JS_WRITE_FILEPATH == type || JS_WRITE_FILEHANDLE == type)
+	{
+		int wcnt = 0;
+		wcnt = js_str.length();
+		fseek(file,0,SEEK_SET);
+		if(fwrite(js_str.c_str(),1,wcnt,file) != wcnt)
+			return	false;
+		fflush(file);
+		return	true;
+	}
+	else
+		return	false;
+}

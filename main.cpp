@@ -105,9 +105,18 @@ bool_t	CanMatrixInit()
 
 #define	INPUT_BUFFER_MAX	4096
 
+char const * g_parse_type_str[] =
+{
+	"JS_PARSE_NULL"
+	,"JS_PARSE_SINGLE"
+	,"JS_PARSE_OBJ"
+	,"JS_PARSE_ARRAY"
+	,"JS_PARSE_END"
+	,"JS_PARSE_ERROR"
+};
 int	main(int argc,char * argv[])
 {
-#if 0
+#if 1
 	int iter=0;
 	int len = 0;
 	char buffer[INPUT_BUFFER_MAX];
@@ -227,6 +236,8 @@ int	main(int argc,char * argv[])
 	}
 
 #endif
+
+#if 0
 	if(argc > 1)
 	{
 		CJsInput input;
@@ -298,5 +309,172 @@ int	main(int argc,char * argv[])
 			}
 		}
 	}
+#endif
+
+#if 0
+	CJsParser jp;
+	char	buffer[4096];
+#if 0
+	typedef enum 	_EnJsParseType
+	{
+		JS_PARSE_NULL		//未解析
+		,JS_PARSE_SINGLE	//单变量
+		,JS_PARSE_OBJ		//变量
+		,JS_PARSE_ARRAY		//数组变量
+		,JS_PARSE_END		//检索到结尾
+		,JS_PARSE_ERROR		//解析出错
+	}EnJsParseType;
+#endif
+
+	if(argc > 1)
+	{
+		if(!jp.Init(argv[1]))
+		{
+			fprintf(stdout,"无法打开文件%s\n",argv[1]);
+			return	1;
+		}
+		for(;;)
+		{
+			bool res = true;
+			buffer[0] = 0;
+			fscanf(stdin,"%s",buffer);
+			if(0 == strcasecmp(buffer,"exit"))
+			{
+				break;
+			}
+			else if(0 == strcasecmp(buffer,"next"))
+			{
+				res = jp.ParseNext();
+			}
+			else if(0 == strcasecmp(buffer,"sub"))
+			{
+				res = jp.ParseSub();
+			}
+			else if(0 == strcasecmp(buffer,"upper"))
+			{
+				res = jp.ParseUpper();
+			}
+			else if(0 == strcasecmp(buffer,"reset"))
+			{
+				res = jp.ParseReset();
+			}
+			else
+			{
+			}
+			if(false == res)
+				fprintf(stdout,"operation failed..\n");
+			fprintf(stdout,"pos=%d line=%d\tvar=%s index=%d ",jp.GetCurPos(),jp.GetCurLine(),jp.GetVar().c_str(),jp.GetIndex());
+			fprintf(stdout,"parse_type=%s value=%s\n",g_parse_type_str[(int)jp.GetParseType()],jp.GetValue().c_str());
+		}
+	}
+#endif
+
+#if 0
+	char buffer[4096];
+	for(;;)
+	{
+		string var_name;
+		int idx = -1;
+		char const * pstr = 0;
+		
+		buffer[0] = 0;
+		fgets(buffer,sizeof(buffer),stdin);
+		fprintf(stdout,"%s\n",buffer);
+		pstr = buffer;
+		while(*pstr)
+		{
+			pstr = CJsParser::ParseSplit(pstr,&var_name,&idx);
+			if(-1 != idx)
+				fprintf(stdout,"[%d]",idx);
+			else if("" != var_name)
+				fprintf(stdout,".\"%s\"",var_name.c_str());
+			else
+				break;
+		}
+		fprintf(stdout,"\n");
+	}
+#endif
+
+#if 0
+	CJsParser jp;
+	if(argc <= 1)
+		return	1;
+	if(!jp.Init(argv[1]))
+	{
+		fprintf(stdout,"无法打开文件%s\n",argv[1]);
+		return	1;
+	}
+
+	char buffer[4096];
+	for(;;)
+	{
+		buffer[0] = 0;
+		fgets(buffer,sizeof(buffer),stdin);
+
+		if(jp.FindPath(buffer))
+		{
+			fprintf(stdout,"pos=%d line=%d\tvar=%s index=%d ",jp.GetCurPos(),jp.GetCurLine(),jp.GetVar().c_str(),jp.GetIndex());
+			fprintf(stdout,"parse_type=%s value=%s\n",g_parse_type_str[(int)jp.GetParseType()],jp.GetValue().c_str());
+		}
+		else
+			fprintf(stdout,"cannot find var %s \n",buffer);
+	}
+#endif
+
+#if 0
+	char buffer[4096];
+	CJsWriter	jw;
+	if(argc <= 1)
+		return	1;
+	if(!jw.Init(argv[1]))
+	{
+		fprintf(stdout,"无法打开文件%s\n",argv[1]);
+		return	1;
+	}
+	jw.WriteVar("var1");
+	jw.WriteValStr(" test 1 \"");	jw.WriteComma();
+
+	jw.WriteVar("obj1");
+	jw.WriteLeftBrace();
+		jw.WriteVar("sub1");	jw.WriteValStr("123");	jw.WriteComma();
+		jw.WriteVar("sbu2");	jw.WriteValStr("true");
+	jw.WriteRightBrace();
+
+	jw.WriteComma();
+	
+	jw.WriteVar("obj2");
+	jw.WriteLeftBrace();
+		jw.WriteVar("sub3");
+		jw.WriteLeftBrace();
+			jw.WriteVar("sub4");	jw.WriteValStr("ABCCD");	jw.WriteComma();
+			jw.WriteVar("sub5");
+			jw.WriteLeftBracket();
+				for(int iter=0;iter<10;++iter)
+				{
+					if(iter)
+						jw.WriteComma();
+					sprintf(buffer,"%d",iter);
+					jw.WriteArrayValStr(buffer);
+				}
+			jw.WriteRightBracket();
+		jw.WriteRightBrace();
+	jw.WriteRightBrace();
+
+	jw.WriteComma();
+
+	jw.WriteVar("array");
+	jw.WriteLeftBracket();
+		for(int iter=0;iter<10;++iter)
+		{
+			if(iter)
+				jw.WriteComma();
+			sprintf(buffer,"%d",(iter*100));
+			jw.WriteArrayValStr(buffer);
+		}
+	jw.WriteRightBracket();
+
+	jw.Flush();
+	jw.Release();
+#endif
 	return	0;
 }

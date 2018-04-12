@@ -70,6 +70,7 @@ public:
 	static	bool	IsEmptyChar(int ch);
 	static	bool	IsAlphaChar(int ch);
 	static	bool	IsNumChar(int ch);
+	static	bool	IsHexChar(int ch);
 	static	bool	IsVarChar(int ch);
 private:
 	CJsInput * input;
@@ -104,31 +105,23 @@ public:
 		,JS_PARSE_SINGLE	//单变量
 		,JS_PARSE_OBJ		//变量
 		,JS_PARSE_ARRAY		//数组变量
+		,JS_PARSE_END		//检索到结尾
 		,JS_PARSE_ERROR		//解析出错
 	}EnJsParseType;
 	struct	CStackInfo
 	{
 	public:
-		EnJsParseType type;
 		long	start_pos;
 		int		start_line;
-		long	cur_pos;
-		int		cur_line;
+		string	var;
+		int	index;
+		EnJsParseType parse_type;
 		CStackInfo()
 		{
-			type = JS_PARSE_NULL;
 			start_pos = 0;
 			start_line = 1;
-			cur_pos = 0;
-			cur_line = 1;
-		}
-		CStackInfo(EnJsParseType t,long sp,int sl,long cp,long cl)
-		{
-			type = t;
-			start_pos = sp;
-			start_line = sl;
-			cur_pos = cp;
-			cur_line = cl;
+			index = -1;
+			parse_type = JS_PARSE_NULL;
 		}
 	};
 private:
@@ -142,7 +135,8 @@ private:
 public:
 	CJsParser()
 	{
-		stack.push_back(CStackInfo(JS_PARSE_OBJ,0,1,0,1));
+		stack.push_back(CStackInfo());
+		stack.back().parse_type = JS_PARSE_OBJ;
 		index = -1;
 		parse_type = JS_PARSE_NULL;
 	}
@@ -155,6 +149,7 @@ public:
 	bool	IsValid()	const	{return	(CJsInput::JS_INPUT_NONE != input.GetType());}
 
 	string	const &	GetVar()	const	{return	var;}
+	int	GetIndex()	const	{return	index;}
 	EnJsParseType GetParseType()	const	{return	parse_type;}
 	string	const & GetValue()	const	{return	value;}
 
@@ -163,9 +158,71 @@ public:
 
 	bool	TokenPass(CJsToken::EnJsTokenType start_token);
 	bool	ParseReset();
+	bool	ParseRoot();
 	bool	ParseNext();
 	bool	ParseUpper();
 	bool	ParseSub();
+
+	bool	FindVar(char const * var_name);
+	bool	FindIndex(int idx);
+
+	static	char const *	ParseSplit(char const * path_name,string * p_var,int * p_index);
+	bool	FindPath(char const * path_name);
+};
+
+class	CJsWriter
+{
+public:
+	typedef enum 	_EnJsWriteType
+	{
+		JS_WRITE_NONE
+		,JS_WRITE_FILEPATH
+		,JS_WRITE_FILEHANDLE
+		,JS_WRITE_DATABUF
+	}EnJsWriteType;
+private:
+	EnJsWriteType type;
+	FILE * file;
+	unsigned char * pdata;
+	int data_size;
+
+	string	js_str;
+
+	string	indent;
+	int index;
+public:
+	CJsWriter()
+	{
+		type = JS_WRITE_NONE;
+		file = NULL;
+		pdata = NULL;
+		data_size = 0;
+		index = 0;
+	}
+	~CJsWriter()
+	{
+		if(JS_WRITE_FILEPATH == type)
+		{
+			if(file)
+				fclose(file);
+		}
+	}
+	string const &	GetJsonStr()	const	{return	js_str;}
+
+	bool	Init(char const * filename);
+	bool	Init(FILE * filehandle);
+	bool	Init(unsigned char * p,int size);
+	void	Release();
+	
+	void	WriteVar(char const * var_name);
+	void	WriteValStr(char const * val_str);
+	void	WriteArrayValStr(char const * val_str);
+	void	WriteComma();
+	void	WriteLeftBrace();
+	void	WriteLeftBracket();
+	void	WriteRightBrace();
+	void	WriteRightBracket();
+	bool	Flush();
 };
 
 #endif
