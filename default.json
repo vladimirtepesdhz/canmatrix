@@ -406,6 +406,7 @@
 			{"value" : 3 , "name" : "Inside ON success"} ,
 			{"value" : 4 , "name" : "Inside ON failed"}
 		]
+	}
 	,
 	{
 		"name" : "CompressorCtrl_FeedBack" ,
@@ -430,7 +431,7 @@
 		"bits_len" : 3 ,
 		"min_v" : 1 ,
 		"max_v" : 4 ,
-		"val_name" "
+		"val_name" :
 		[
 			{"value" : 1 , "name" : "ON success" } ,
 			{"value" : 2 , "name" : "ON failed" } ,
