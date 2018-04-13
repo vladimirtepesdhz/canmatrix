@@ -311,9 +311,28 @@ bool	CJsToken::ParseNext()
 
 bool	CJsParser::CheckHead()
 {
+	unsigned char win_utf8_header[3];
 	CJsToken token;
 
 	token.Init(&input);
+
+	//检测Windows的UTF8头标志 EF BB BF
+	win_utf8_header[0] = input.GetChar();
+	win_utf8_header[1] = input.GetChar();
+	win_utf8_header[2] = input.GetChar();
+	if((0xEF == win_utf8_header[0])
+		&& (0xBB == win_utf8_header[1])
+		&& (0xBF == win_utf8_header[2]))
+	{
+		stack.back().start_pos = input.GetPos();
+	}
+	else
+	{
+		input.Seek(0);
+		input.SetLineNum(1);
+	}
+
+	//检测第一个左大括号
 	if(token.ParseNext())
 	{
 		if(CJsToken::JS_TOKEN_LEFT_BRACE == token.GetType())
