@@ -152,6 +152,7 @@ public:
 	int	GetIndex()	const	{return	index;}
 	EnJsParseType GetParseType()	const	{return	parse_type;}
 	string	const & GetValue()	const	{return	value;}
+	int	GetValInt()	const;
 
 	long	GetCurPos()	const	{return	input.GetPos();}
 	int		GetCurLine()	const	{return	input.GetLineNum();}
@@ -168,6 +169,8 @@ public:
 
 	static	char const *	ParseSplit(char const * path_name,string * p_var,int * p_index);
 	bool	FindPath(char const * path_name);
+	bool	EnterObj();
+	bool	EnterArray();
 };
 
 class	CJsWriter

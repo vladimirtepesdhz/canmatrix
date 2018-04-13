@@ -309,6 +309,38 @@ bool	CJsToken::ParseNext()
 	return	true;
 }
 
+int	CJsParser::GetValInt()	const
+{
+	bool	neg = false;
+	char const * pstr = NULL;
+	int  result = 0;
+
+	if("" == value)
+		return	0;
+
+	pstr = value.c_str();
+	while(*pstr && CJsToken::IsEmptyChar(*pstr))
+		++pstr;
+	if('-' == *pstr)
+	{
+		neg = true;
+		++pstr;
+	}
+	while(*pstr && CJsToken::IsEmptyChar(*pstr))
+		++pstr;
+	if('0' == pstr[0] && ('x' == pstr[1] || 'X' == pstr[1]))
+	{
+		result = strtoul(pstr,NULL,16);
+	}
+	else
+	{
+		result = strtoul(pstr,NULL,10);
+	}
+	if(neg)
+		result = -result;
+	return	result;
+}
+
 
 
 bool	CJsParser::TokenPass(CJsToken::EnJsTokenType start_token)
@@ -714,6 +746,26 @@ bool	CJsParser::FindPath(char const * path_name)
 		++step;
 	}
 	return	true;
+}
+
+bool	CJsParser::EnterObj()
+{
+	if(JS_PARSE_OBJ == parse_type)
+	{
+		return	ParseSub();
+	}
+	else
+		return	false;
+}
+
+bool	CJsParser::EnterArray()
+{
+	if(JS_PARSE_ARRAY == parse_type)
+	{
+		return	ParseSub();
+	}
+	else
+		return	false;
 }
 
 

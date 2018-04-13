@@ -14,6 +14,8 @@ using	namespace	std;
 
 #define	numof(a)	(sizeof(a)/sizeof((a)[0]))
 
+#define	INPUT_BUFFER_MAX	4096
+
 typedef	struct 	_StCanIdName
 {
 	u16 can_id;
@@ -35,6 +37,45 @@ typedef struct 	_StCanFrame
 	u16 can_id;
 	u8	can_data[8];
 }StCanFrame;
+
+
+class	CCanValName
+{
+public:
+	int value;
+	string name;
+
+	CCanValName()
+	{
+		value = 0;
+	}
+	CCanValName(int v,char const * n)
+	{
+		value = v;
+		name = n;
+	}
+};
+
+class	CCanSignal
+{
+public:
+	string	sign_name;
+	int can_id;
+	int start_bit;
+	int bits_len;
+	int min_v;
+	int max_v;
+	vector<CCanValName>	val_name;
+	
+	CCanSignal()
+	{
+		can_id = 0;
+		start_bit = 0;
+		bits_len = 0;
+		min_v = 0;
+		max_v = 0;
+	}
+};
 
 StCanIdName	g_can_id_table[] = 
 {
@@ -83,15 +124,18 @@ StCanSignal	g_signal_table[] =
 	//GW_18(0xE3)
 	,{"EngineSt_EMS",				0xE3,	32,3,	1,7}
 };
-map<string,StCanSignal*>	g_signal_map;
-map<u16,string>	g_can_id_map;
-typedef	map<string,StCanSignal*>::iterator TySignal;
-typedef map<u16,string>::iterator	TyCanId;
-vector<StCanSignal*>	g_signal_req;
+vector<CCanSignal>	g_signal_data;
 
-bool_t	CanMatrixInit()
+map<string,CCanSignal*>	g_signal_map;
+map<u16,string>	g_can_id_map;
+typedef	map<string,CCanSignal*>::iterator TySignal;
+typedef map<u16,string>::iterator	TyCanId;
+vector<CCanSignal*>	g_signal_req;
+
+bool	CanMatrixInit()
 {
 	int iter=0;
+#if 0
 	for(iter=0;iter<numof(g_can_id_table);++iter)
 	{
 		g_can_id_map.insert(pair<u16,string>(g_can_id_table[iter].can_id,g_can_id_table[iter].id_name));
@@ -100,10 +144,183 @@ bool_t	CanMatrixInit()
 	{
 		g_signal_map.insert(pair<string,StCanSignal*>(g_signal_table[iter].sign_name,&g_signal_table[iter]));
 	}
-	return	t_true;
+#endif
+
+#if 0
+	for(iter=0;iter<numof(g_can_id_table);++iter)
+	{
+		g_can_id_map.insert(pair<int,string>(g_can_id_table[iter].can_id,g_can_id_table[iter].id_name));
+	}
+	for(iter=0;iter<numof(g_signal_table);++iter)
+	{
+		CCanSignal * p = NULL;
+		g_signal_data.push_back(CCanSignal());
+		p = &g_signal_data.back();
+		p->sign_name = g_signal_table[iter].sign_name;
+		p->can_id = g_signal_table[iter].can_id;
+		p->start_bit = g_signal_table[iter].start_bit;
+		p->bits_len = g_signal_table[iter].bits_len;
+		p->min_v = g_signal_table[iter].min_v;
+		p->max_v = g_signal_table[iter].max_v;
+	}
+	for(iter=0;iter<numof(g_signal_table);++iter)
+	{
+		g_signal_map.insert(pair<string,CCanSignal*>(g_signal_table[iter].sign_name,&g_signal_data[iter]));
+	}
+#endif
+
+	CJsParser jp;
+	if(!jp.Init("default.json"))
+	{
+		fprintf(stdout,"cannot load default.json\n");
+		return	false;
+	}
+	if(jp.FindPath("CAN_frame"))
+	{
+		if(jp.EnterArray())
+		{
+			while(jp.ParseNext())
+			{
+				if(jp.EnterObj())
+				{
+					int can_id = 0;
+					string name;
+
+					if(jp.FindVar("can_id"))
+						can_id = jp.GetValInt();
+					if(jp.FindVar("name"))
+						name = jp.GetValue();
+
+					g_can_id_map.insert(pair<int,string>(can_id,name));
+					jp.ParseUpper();
+				}
+			}
+		}
+	}
+	else
+	{
+		fprintf(stdout,"cannot find var : CAN_frame\n");
+	}
+	if(jp.FindPath("signals"))
+	{
+		if(jp.EnterArray())
+		{
+			while(jp.ParseNext())
+			{
+				if(jp.EnterObj())
+				{
+					CCanSignal * p = NULL;
+					g_signal_data.push_back(CCanSignal());
+					p = &g_signal_data.back();
+
+					if(jp.FindVar("name"))
+						p->sign_name = jp.GetValue();
+					if(jp.FindVar("can_id"))
+						p->can_id = jp.GetValInt();
+					if(jp.FindVar("start_bit"))
+						p->start_bit = jp.GetValInt();
+					if(jp.FindVar("bits_len"))
+						p->bits_len = jp.GetValInt();
+					if(jp.FindVar("min_v"))
+						p->min_v = jp.GetValInt();
+					if(jp.FindVar("max_v"))
+						p->max_v = jp.GetValInt();
+					if(jp.FindVar("val_name"))
+					{
+						if(jp.EnterArray())
+						{
+							while(jp.ParseNext())
+							{
+								if(jp.EnterObj())
+								{
+									int value = 0;
+									string name;
+
+									if(jp.FindVar("value"))
+										value = jp.GetValInt();
+									if(jp.FindVar("name"))
+										name = jp.GetValue();
+									p->val_name.push_back(CCanValName(value,name.c_str()));
+
+									jp.ParseUpper();
+								}
+							}
+							jp.ParseUpper();
+						}
+					}
+					jp.ParseUpper();
+				}
+			}
+		}
+	}
+	else
+	{
+		fprintf(stdout,"cannot find var : signals\n");
+	}
+	for(iter=0;iter<g_signal_data.size();++iter)
+	{
+		g_signal_map.insert(pair<string,CCanSignal*>(g_signal_data[iter].sign_name,&g_signal_data[iter]));
+	}
+
+#if 0
+	fprintf(stdout,"g_can_id_map:\n");
+	for(TyCanId I=g_can_id_map.begin();I != g_can_id_map.end(); ++I)
+	{
+		fprintf(stdout,"can_id == 0x%x name == %s\n",I->first,I->second.c_str());
+	}
+	fprintf(stdout,"g_signal_data:\n");
+	for(iter=0;iter<g_signal_data.size();++iter)
+	{
+		CCanSignal * p = &g_signal_data[iter];
+		fprintf(stdout,"[%d]:\n{\n",iter);
+		fprintf(stdout,"sign_name == %s\n",p->sign_name.c_str());
+		fprintf(stdout,"can_id == 0x%x\n",p->can_id);
+		fprintf(stdout,"start_bit == %d\n",p->start_bit);
+		fprintf(stdout,"bits_len == %d\n",p->bits_len);
+		fprintf(stdout,"min_v == %d\n",p->min_v);
+		fprintf(stdout,"max_v == %d\n",p->max_v);
+		if(p->val_name.size())
+		{
+			for(int j=0;j<p->val_name.size();++j)
+			{
+				CCanValName * pval = &(p->val_name[j]);
+				fprintf(stdout,"\tvalue == %d name == %s\n",pval->value,pval->name.c_str());
+			}
+		}
+		fprintf(stdout,"}\n");
+	}
+#endif
+	return	true;
 }
 
-#define	INPUT_BUFFER_MAX	4096
+bool	CanMatrixLoadCfg(char const * file_name)
+{
+	char buffer[INPUT_BUFFER_MAX];
+	FILE * file = NULL;
+	file = fopen(file_name,"r");
+	if(file)
+	{
+		//while(fgets(buffer,sizeof(buffer),file)
+		while(0 == feof(file))
+		{
+			buffer[0] = 0;
+			fscanf(file,"%s",buffer);
+			if(0 == buffer[0] || '\n' == buffer[0])
+				continue;
+			//fprintf(stdout,"%s\n",buffer);
+			TySignal i = g_signal_map.find(buffer);
+			if(g_signal_map.end() != i)
+			{
+				g_signal_req.push_back(i->second);
+			}
+		}
+		fclose(file);
+		return	true;
+	}
+	else
+		return	false;
+}
+
 
 char const * g_parse_type_str[] =
 {
@@ -121,47 +338,14 @@ int	main(int argc,char * argv[])
 	int len = 0;
 	char buffer[INPUT_BUFFER_MAX];
 
-	CanMatrixInit();
-
+	if(!CanMatrixInit())
+	{
+		fprintf(stdout,"init failed..\n");
+		return	1;
+	}
 	for(iter=1;iter<argc;++iter)
 	{
-		FILE * file = NULL;
-		file = fopen(argv[iter],"r");
-		if(file)
-		{
-			//while(fgets(buffer,sizeof(buffer),file)
-			while(0 == feof(file))
-			{
-				buffer[0] = 0;
-#if 0
-				fgets(buffer,sizeof(buffer),file);
-				if(0 == buffer[0] || '\n' == buffer[0])
-					continue;
-				len = strlen(buffer);
-				if(len >= 2)
-				{
-					if('\r' == buffer[len - 2] || '\n' == buffer[len - 2])
-						buffer[len - 2] = 0;
-				}
-				if(len >= 1)
-				{
-					if('\r' == buffer[len - 1] || '\n' == buffer[len - 1])
-						buffer[len - 1] = 0;
-				}
-#else
-				fscanf(file,"%s",buffer);
-				if(0 == buffer[0] || '\n' == buffer[0])
-					continue;
-				//fprintf(stdout,"%s\n",buffer);
-#endif
-				TySignal i = g_signal_map.find(buffer);
-				if(g_signal_map.end() != i)
-				{
-					g_signal_req.push_back(i->second);
-				}
-			}
-			fclose(file);
-		}
+		CanMatrixLoadCfg(argv[iter]);
 	}
 
 	while(0 == feof(stdin))
@@ -208,7 +392,7 @@ int	main(int argc,char * argv[])
 		{
 			for(int iter=0;iter<g_signal_req.size();++iter)
 			{
-				StCanSignal * p = g_signal_req[iter];
+				CCanSignal * p = g_signal_req[iter];
 				if(p->can_id == frame.can_id)
 				{
 					u8 value = 0;
@@ -228,7 +412,16 @@ int	main(int argc,char * argv[])
 								fprintf(stdout,"%s",str_line.c_str());
 							}
 						}
-						fprintf(stdout,"\t%s = 0x%x\n",p->sign_name,(int)value);
+						fprintf(stdout,"\t%s = 0x%x ",p->sign_name.c_str(),(int)value);
+						for(int j=0;j<p->val_name.size();++j)
+						{
+							if(value == p->val_name[j].value)
+							{
+								fprintf(stdout,"(%s)",p->val_name[j].name.c_str());
+								break;
+							}
+						}
+						fprintf(stdout,"\n");
 					}
 				}
 			}

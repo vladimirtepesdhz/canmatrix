@@ -15,16 +15,20 @@ do
 	cat $tempfile | ./canm engine.cfg >> $filename 
 	echo '' >> $filename
 
-	echo '0x2B1:' >> $filename
-	cat $tempfile | ./canm 0x2B1.cfg >> $filename
-	echo '' >> $filename
+#	echo '0x2B1:' >> $filename
+#	cat $tempfile | ./canm 0x2B1.cfg >> $filename
+#	echo '' >> $filename
+#
+#	echo '0x2C8:' >> $filename
+#	cat $tempfile | ./canm 0x2C8.cfg >> $filename
+#	echo '' >> $filename
+#
+#	echo '0x2AD:' >> $filename
+#	cat $tempfile | ./canm 0x2AD.cfg >> $filename
+#	echo '' >> $filename
 
-	echo '0x2C8:' >> $filename
-	cat $tempfile | ./canm 0x2C8.cfg >> $filename
-	echo '' >> $filename
-
-	echo '0x2AD:' >> $filename
-	cat $tempfile | ./canm 0x2AD.cfg >> $filename
+	echo 'remote info:' >> $filename
+	cat $tempfile | ./canm remote.cfg >> $filename
 	echo '' >> $filename
 
 	shift
