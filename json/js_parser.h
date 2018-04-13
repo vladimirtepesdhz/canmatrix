@@ -143,9 +143,10 @@ public:
 	~CJsParser()
 	{
 	}
-	bool	Init(char const * filename)	{return	input.Init(filename);}
-	bool	Init(FILE * filehandle)	{return	input.Init(filehandle);}
-	bool	Init(unsigned char const * p_data,int data_size)	{return	input.Init(p_data,data_size);}
+	bool	CheckHead();
+	bool	Init(char const * filename);
+	bool	Init(FILE * filehandle);
+	bool	Init(unsigned char const * p_data,int data_size);
 	bool	IsValid()	const	{return	(CJsInput::JS_INPUT_NONE != input.GetType());}
 
 	string	const &	GetVar()	const	{return	var;}

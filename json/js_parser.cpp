@@ -309,6 +309,41 @@ bool	CJsToken::ParseNext()
 	return	true;
 }
 
+bool	CJsParser::CheckHead()
+{
+	CJsToken token;
+
+	token.Init(&input);
+	if(token.ParseNext())
+	{
+		if(CJsToken::JS_TOKEN_LEFT_BRACE == token.GetType())
+		{
+			stack.back().start_pos = input.GetPos();
+			stack.back().start_line = input.GetLineNum();
+		}
+	}
+	return	true;
+}
+
+bool	CJsParser::Init(char const * filename)
+{
+	if(!input.Init(filename))
+		return	false;
+	return	CheckHead();
+}
+bool	CJsParser::Init(FILE * filehandle)
+{
+	if(!input.Init(filehandle))
+		return	false;
+	return	CheckHead();
+}
+bool	CJsParser::Init(unsigned char const * p_data,int data_size)
+{
+	if(!input.Init(p_data,data_size))
+		return	false;
+	return	CheckHead();
+}
+
 int	CJsParser::GetValInt()	const
 {
 	bool	neg = false;
