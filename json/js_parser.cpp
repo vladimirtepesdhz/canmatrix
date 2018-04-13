@@ -7,7 +7,7 @@
 
 bool	CJsInput::Init(char const * file_path)
 {
-	file = fopen(file_path,"r");
+	file = fopen(file_path,"rb");
 	if(NULL == file)
 		return	false;
 	type = JS_INPUT_FILEPATH;
