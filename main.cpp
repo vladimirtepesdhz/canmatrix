@@ -18,14 +18,14 @@ using	namespace	std;
 
 typedef	struct 	_StCanIdName
 {
-	u16 can_id;
+	int can_id;
 	char const * id_name;
 }StCanIdName;
 
 typedef	struct 	_StCanSignal
 {
 	char const *	sign_name;
-	u16	can_id;
+	int	can_id;
 	u8	start_bit;
 	u8	bits_len;
 	u8	min_v;
@@ -34,9 +34,17 @@ typedef	struct 	_StCanSignal
 
 typedef struct 	_StCanFrame
 {
-	u16 can_id;
+	float timestamp;
+	int	can_id;
 	u8	can_data[8];
 }StCanFrame;
+
+typedef struct 	_StFrameStatic
+{
+	float start_time;
+	float end_time;
+	int frame_cnt;
+}StFrameStatic;
 
 
 class	CCanValName
@@ -127,9 +135,9 @@ StCanSignal	g_signal_table[] =
 vector<CCanSignal>	g_signal_data;
 
 map<string,CCanSignal*>	g_signal_map;
-map<u16,string>	g_can_id_map;
+map<int,string>	g_can_id_map;
 typedef	map<string,CCanSignal*>::iterator TySignal;
-typedef map<u16,string>::iterator	TyCanId;
+typedef map<int,string>::iterator	TyCanId;
 vector<CCanSignal*>	g_signal_req;
 
 bool	CanMatrixInit()
@@ -321,6 +329,82 @@ bool	CanMatrixLoadCfg(char const * file_name)
 		return	false;
 }
 
+bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
+{
+	bool first_print = false;
+	bool valid_signal = false;
+	for(int iter=0;iter<g_signal_req.size();++iter)
+	{
+		CCanSignal * p = g_signal_req[iter];
+		if(p->can_id == p_frame->can_id)
+		{
+			int value = 0;
+
+			value = GetBits_LE32(p_frame->can_data,sizeof(p_frame->can_data),p->start_bit,p->bits_len);
+			if(value >= p->min_v && value <= p->max_v)
+			{
+				valid_signal = true;
+				if(false == first_print)
+				{
+					TyCanId i;
+
+					first_print = true;
+
+					i = g_can_id_map.find(p_frame->can_id);
+					if(g_can_id_map.end() != i)
+					{
+						fprintf(stdout," <from:%.3f\tto:%.3f\tcount:%d>",
+								p_static->start_time,p_static->end_time,p_static->frame_cnt);
+						fprintf(stdout,"\t%s\t%X\t[ ",i->second.c_str(),p_frame->can_id);
+						//fprintf(stdout,"%s",str_line.c_str());
+						for(int j=0;j<sizeof(p_frame->can_data);++j)
+						{
+							fprintf(stdout,"%02.2X ",(int)(p_frame->can_data[j]));
+						}
+						fprintf(stdout,"]\n");
+					}
+				}
+				fprintf(stdout,"\t%s = 0x%X ",p->sign_name.c_str(),(int)value);
+				for(int j=0;j<p->val_name.size();++j)
+				{
+					if(value == p->val_name[j].value)
+					{
+						fprintf(stdout,"(%s)",p->val_name[j].name.c_str());
+						break;
+					}
+				}
+				fprintf(stdout,"\n");
+			}
+		}
+	}
+	return	valid_signal;
+}
+
+//检查报文中是否有要找的信号量
+bool	CanMatrixCheckSignal(StCanFrame * p_frame)
+{
+	if(0 == p_frame->can_id)
+	{
+		return	false;
+	}
+
+	for(int iter=0;iter<g_signal_req.size();++iter)
+	{
+		CCanSignal * p = g_signal_req[iter];
+		if(p->can_id == p_frame->can_id)
+		{
+			int value = 0;
+
+			value = GetBits_LE32(p_frame->can_data,sizeof(p_frame->can_data),p->start_bit,p->bits_len);
+			if(value >= p->min_v && value <= p->max_v)
+			{
+				return	true;
+			}
+		}
+	}
+	return	false;
+}
+
 
 char const * g_parse_type_str[] =
 {
@@ -337,6 +421,8 @@ int	main(int argc,char * argv[])
 	int iter=0;
 	int len = 0;
 	char buffer[INPUT_BUFFER_MAX];
+	StCanFrame last_frame;
+	StFrameStatic frame_stat;
 
 	if(!CanMatrixInit())
 	{
@@ -348,13 +434,19 @@ int	main(int argc,char * argv[])
 		CanMatrixLoadCfg(argv[iter]);
 	}
 
+	last_frame.timestamp = 0.0;
+	last_frame.can_id = 0;
+	memset(last_frame.can_data,0,sizeof(last_frame.can_data));
+	frame_stat.start_time = 0.0;
+	frame_stat.end_time = 0.0;
+	frame_stat.frame_cnt = 0;
 	while(0 == feof(stdin))
 	{
 		vector<char const *>	str_split;
 		char * p_str = buffer;
 		StCanFrame frame;
 		int size = 0;
-		bool_t print_frame = t_false;
+		bool valid_signal = false;
 		string str_line;
 
 		//读入行数据
@@ -376,6 +468,7 @@ int	main(int argc,char * argv[])
 		memset(&frame,0,sizeof(frame));
 		if(str_split.size() >=2 )
 		{
+			frame.timestamp = atof(str_split[0]);
 			frame.can_id = strtoul(str_split[1],NULL,16);
 			if(str_split.size() < 8+2)
 				size = str_split.size() - 2;
@@ -387,46 +480,29 @@ int	main(int argc,char * argv[])
 			}
 		}
 
-		//解析报文数据
-		if(0 != frame.can_id)
+		//对比重复报文的数据
+		if(true == CanMatrixCheckSignal(&frame))
 		{
-			for(int iter=0;iter<g_signal_req.size();++iter)
+			if((last_frame.can_id == frame.can_id)&&(0 == memcmp(last_frame.can_data,frame.can_data,sizeof(frame.can_data))))
 			{
-				CCanSignal * p = g_signal_req[iter];
-				if(p->can_id == frame.can_id)
-				{
-					u8 value = 0;
-
-					value = GetBits_LE32(frame.can_data,sizeof(frame.can_data),p->start_bit,p->bits_len);
-					if(value >= p->min_v && value <= p->max_v)
-					{
-						if(t_false == print_frame)
-						{
-							TyCanId i;
-
-							print_frame = t_true;
-							i = g_can_id_map.find(frame.can_id);
-							if(g_can_id_map.end() != i)
-							{
-								fprintf(stdout," %s\t",i->second.c_str());
-								fprintf(stdout,"%s",str_line.c_str());
-							}
-						}
-						fprintf(stdout,"\t%s = 0x%x ",p->sign_name.c_str(),(int)value);
-						for(int j=0;j<p->val_name.size();++j)
-						{
-							if(value == p->val_name[j].value)
-							{
-								fprintf(stdout,"(%s)",p->val_name[j].name.c_str());
-								break;
-							}
-						}
-						fprintf(stdout,"\n");
-					}
-				}
+				frame_stat.end_time = frame.timestamp;
+				++frame_stat.frame_cnt;
 			}
+			else
+			{
+				//解析报文数据
+				if(0 != last_frame.can_id)
+				{
+					valid_signal = CanMatrixPrintSignal(&last_frame,&frame_stat);
+				}
+				frame_stat.start_time = frame.timestamp;
+				frame_stat.end_time = frame.timestamp;
+				frame_stat.frame_cnt = 1;
+			}
+			last_frame = frame;
 		}
 	}
+	CanMatrixPrintSignal(&last_frame,&frame_stat);
 
 #endif
 
