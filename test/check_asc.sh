@@ -31,5 +31,9 @@ do
 	cat $tempfile | ./canm remote.cfg >> $filename
 	echo '' >> $filename
 
+	echo '0x297:' >> $filename
+	cat $tempfile | ./canm 0x297.cfg >> $filename
+	echo '' >> $filename
+
 	shift
 done
