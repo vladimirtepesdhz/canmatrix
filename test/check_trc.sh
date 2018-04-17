@@ -16,6 +16,10 @@ do
 	cat $tempfile | ./canm engine.cfg >> $filename 
 	echo '' >> $filename
 
+	echo '0x0E3:' >> $filename
+	cat $tempfile | ./canm 0x0E3.cfg >> $filename
+	echo '' >> $filename
+
 #	echo '0x2B1:' >> $filename
 #	cat $tempfile | ./canm 0x2B1.cfg >> $filename
 #	echo '' >> $filename
