@@ -351,18 +351,17 @@ bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
 					first_print = true;
 
 					i = g_can_id_map.find(p_frame->can_id);
+					fprintf(stdout," <from:%.3f\tto:%.3f\tcount:%d>\t",
+						p_static->start_time,p_static->end_time,p_static->frame_cnt);
 					if(g_can_id_map.end() != i)
+						fprintf(stdout,"%s\t",i->second.c_str());
+					fprintf(stdout,"%x\t[",p_frame->can_id);
+					//fprintf(stdout,"%s",str_line.c_str());
+					for(int j=0;j<sizeof(p_frame->can_data);++j)
 					{
-						fprintf(stdout," <from:%.3f\tto:%.3f\tcount:%d>",
-								p_static->start_time,p_static->end_time,p_static->frame_cnt);
-						fprintf(stdout,"\t%s\t%X\t[ ",i->second.c_str(),p_frame->can_id);
-						//fprintf(stdout,"%s",str_line.c_str());
-						for(int j=0;j<sizeof(p_frame->can_data);++j)
-						{
-							fprintf(stdout,"%02.2X ",(int)(p_frame->can_data[j]));
-						}
-						fprintf(stdout,"]\n");
+						fprintf(stdout,"%02.2X ",(int)(p_frame->can_data[j]));
 					}
+					fprintf(stdout,"]\n");
 				}
 				fprintf(stdout,"\t%s = 0x%X ",p->sign_name.c_str(),(int)value);
 				for(int j=0;j<p->val_name.size();++j)

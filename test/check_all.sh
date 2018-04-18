@@ -7,12 +7,12 @@ do
 	dir=$(dirname $1)
 	suffix=$1
 	suffix=${suffix##*.}
-	suffix=$(echo $suffix | tr [A-Z] [a-z])
-	filename=${dir}'/'$(basename -s .trc $1).txt
+	filename=${dir}'/'$(basename -s '.'$suffix  $1).txt
 	echo '' > $filename
 
 	echo $1' -> '$filename
 
+	suffix=$(echo $suffix | tr [A-Z] [a-z])
 	if [ $suffix == "trc" ];then
 		grep -vE '^;' $1 | awk '{printf $2"\t";printf $4"\t";for(i=7;i<=NF;++i){printf $i" "};print ""}' > $tempfile
 	elif [ $suffix == "asc" ];then
