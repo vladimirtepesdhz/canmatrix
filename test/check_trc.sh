@@ -4,7 +4,8 @@ tempfile=temp.txt
 
 while [ $# -ge 1 ]
 do
-	filename=$(basename -s .trc $1).txt
+	dir=$(dirname $1)
+	filename=${dir}'/'$(basename -s .trc $1).txt
 	echo '' > $filename
 
 	echo $1' -> '$filename
