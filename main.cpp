@@ -355,7 +355,7 @@ bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
 						p_static->start_time,p_static->end_time,p_static->frame_cnt);
 					if(g_can_id_map.end() != i)
 						fprintf(stdout,"%s\t",i->second.c_str());
-					fprintf(stdout,"%x\t[",p_frame->can_id);
+					fprintf(stdout,"%X\t[",p_frame->can_id);
 					//fprintf(stdout,"%s",str_line.c_str());
 					for(int j=0;j<sizeof(p_frame->can_data);++j)
 					{
