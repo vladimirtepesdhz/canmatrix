@@ -363,6 +363,18 @@ bool	CJsParser::Init(unsigned char const * p_data,int data_size)
 	return	CheckHead();
 }
 
+void	CJsParser::Release()
+{
+	input.Release();
+	stack.clear();
+	stack.push_back(CStackInfo());
+	stack.back().parse_type = JS_PARSE_OBJ;
+	var = "";
+	index = -1;
+	parse_type = JS_PARSE_NULL;
+	value = "";
+}
+
 int	CJsParser::GetValInt()	const
 {
 	bool	neg = false;

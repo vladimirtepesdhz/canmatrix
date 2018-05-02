@@ -147,6 +147,7 @@ public:
 	bool	Init(char const * filename);
 	bool	Init(FILE * filehandle);
 	bool	Init(unsigned char const * p_data,int data_size);
+	void	Release();
 	bool	IsValid()	const	{return	(CJsInput::JS_INPUT_NONE != input.GetType());}
 
 	string	const &	GetVar()	const	{return	var;}

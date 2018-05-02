@@ -4,6 +4,7 @@
 	{
 		"can_id" : "0x058" ,
 		"name" : "TBOX_2"
+		,"enc_type" : "TBOX_2"
 	}
 	,
 	{
@@ -52,6 +53,20 @@
 		"min_v" : "0" ,
 		"max_v" : "0xFF" ,
 		"val_name" :
+		[
+			{"value":"0x04" , "name":"engine start"}
+			,{"value":"0x05", "name":"engine stop"}
+		]
+	}
+	,
+	{
+		"name" : "SN"
+		,"can_id" : "0x058"
+		,"start_bit" : 8
+		,"bits_len" : 24
+		,"min_v" : 0
+		,"max_v" : "0xFFFFFF"
+		,"val_name" :
 		[
 		]
 	}

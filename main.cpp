@@ -46,6 +46,23 @@ typedef struct 	_StFrameStatic
 	int frame_cnt;
 }StFrameStatic;
 
+class	CCanFrameInfo
+{
+public:
+	int can_id;
+	string	name;
+	string	enc_type;
+	CCanFrameInfo()
+	{
+		can_id = 0;
+	}
+	CCanFrameInfo(int id,char const * n,char const * e)
+	{
+		can_id = id;
+		name = n;
+		enc_type = e;
+	}
+};
 
 class	CCanValName
 {
@@ -132,13 +149,22 @@ StCanSignal	g_signal_table[] =
 	//GW_18(0xE3)
 	,{"EngineSt_EMS",				0xE3,	32,3,	1,7}
 };
+
+unsigned char	g_sk3[8] = {0};
+
+vector<CCanFrameInfo>	g_frame_info;
 vector<CCanSignal>	g_signal_data;
 
+map<int,CCanFrameInfo*>	g_can_frame_map;
 map<string,CCanSignal*>	g_signal_map;
-map<int,string>	g_can_id_map;
+
 typedef	map<string,CCanSignal*>::iterator TySignal;
-typedef map<int,string>::iterator	TyCanId;
+typedef map<int,CCanFrameInfo*>::iterator	TyCanFrame;
+
 vector<CCanSignal*>	g_signal_req;
+
+void	SK3_enc(unsigned char * p_data_in,unsigned char * p_sk3,unsigned char * p_data_out);
+void	SK3_dec(unsigned char * p_data_in,unsigned char * p_sk3,unsigned char * p_data_out);
 
 bool	CanMatrixInit()
 {
@@ -178,10 +204,32 @@ bool	CanMatrixInit()
 #endif
 
 	CJsParser jp;
+
+	if(jp.Init("sk3.json"))
+	{
+		if(jp.FindPath("sk3"))
+		{
+			if(jp.EnterArray())
+			{
+				for(iter=0;iter<sizeof(g_sk3);++iter)
+				{
+					if(!jp.ParseNext())
+						break;
+					g_sk3[iter] = jp.GetValInt();
+				}
+			}
+		}
+		else
+			fprintf(stdout,"cannot find var sk3\n");
+		jp.Release();
+	}
+	else
+		fprintf(stdout,"cannot find sk3.json\n");
+	
 	if(!jp.Init("default.json"))
 	{
 		fprintf(stdout,"cannot load default.json\n");
-		return	false;
+		return	1;
 	}
 	if(jp.FindPath("CAN_frame"))
 	{
@@ -192,14 +240,19 @@ bool	CanMatrixInit()
 				if(jp.EnterObj())
 				{
 					int can_id = 0;
+					CCanFrameInfo * p = NULL;
 					string name;
 
-					if(jp.FindVar("can_id"))
-						can_id = jp.GetValInt();
-					if(jp.FindVar("name"))
-						name = jp.GetValue();
+					g_frame_info.push_back(CCanFrameInfo());
+					p = &g_frame_info.back();
 
-					g_can_id_map.insert(pair<int,string>(can_id,name));
+					if(jp.FindVar("can_id"))
+						p->can_id = jp.GetValInt();
+					if(jp.FindVar("name"))
+						p->name = jp.GetValue();
+					if(jp.FindVar("enc_type"))
+						p->enc_type = jp.GetValue();
+
 					jp.ParseUpper();
 				}
 			}
@@ -208,6 +261,10 @@ bool	CanMatrixInit()
 	else
 	{
 		fprintf(stdout,"cannot find var : CAN_frame\n");
+	}
+	for(iter=0;iter<g_frame_info.size();++iter)
+	{
+		g_can_frame_map.insert(pair<int,CCanFrameInfo*>(g_frame_info[iter].can_id,&g_frame_info[iter]));
 	}
 	if(jp.FindPath("signals"))
 	{
@@ -333,28 +390,38 @@ bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
 {
 	bool first_print = false;
 	bool valid_signal = false;
+	unsigned char	dec[8];
 	for(int iter=0;iter<g_signal_req.size();++iter)
 	{
 		CCanSignal * p = g_signal_req[iter];
+		CCanFrameInfo * p_fi = NULL;
+		TyCanFrame I = g_can_frame_map.find(p->can_id);
+		if(g_can_frame_map.end() != I)
+			p_fi = I->second;
 		if(p->can_id == p_frame->can_id)
 		{
 			int value = 0;
 
-			value = GetBits_LE32(p_frame->can_data,sizeof(p_frame->can_data),p->start_bit,p->bits_len);
+			memcpy(dec,p_frame->can_data,sizeof(dec));
+			if(p_fi->enc_type.length())
+			{
+				if("TBOX_2" == p_fi->enc_type)
+				{
+					SK3_dec(p_frame->can_data,g_sk3,dec);
+				}
+			}
+			value = GetBits_LE32(dec,sizeof(dec),p->start_bit,p->bits_len);
 			if(value >= p->min_v && value <= p->max_v)
 			{
 				valid_signal = true;
 				if(false == first_print)
 				{
-					TyCanId i;
-
 					first_print = true;
 
-					i = g_can_id_map.find(p_frame->can_id);
 					fprintf(stdout," <from:%.3f\tto:%.3f\tcount:%d>\t",
 						p_static->start_time,p_static->end_time,p_static->frame_cnt);
-					if(g_can_id_map.end() != i)
-						fprintf(stdout,"%s\t",i->second.c_str());
+					if(p_fi)
+						fprintf(stdout,"%s\t",p_fi->name.c_str());
 					fprintf(stdout,"%X\t[",p_frame->can_id);
 					//fprintf(stdout,"%s",str_line.c_str());
 					for(int j=0;j<sizeof(p_frame->can_data);++j)
@@ -362,6 +429,18 @@ bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
 						fprintf(stdout,"%02.2X ",(int)(p_frame->can_data[j]));
 					}
 					fprintf(stdout,"]\n");
+					if(p_fi->enc_type.length())
+					{
+						if("TBOX_2" == p_fi->enc_type)
+						{
+							fprintf(stdout,"\tdec:[");
+							for(int j=0;j<sizeof(dec);++j)
+							{
+								fprintf(stdout,"%02.2X ",dec[j]);
+							}
+							fprintf(stdout,"]\n");
+						}
+					}
 				}
 				fprintf(stdout,"\t%s = 0x%X ",p->sign_name.c_str(),(int)value);
 				for(int j=0;j<p->val_name.size();++j)
@@ -403,6 +482,61 @@ bool	CanMatrixCheckSignal(StCanFrame * p_frame)
 	}
 	return	false;
 }
+
+void	SK3_enc(unsigned char * p_data_in,unsigned char * p_sk3,unsigned char * p_data_out)
+{
+	int iter=0;
+
+	unsigned char	random[4];
+	for(iter=0;iter<sizeof(random);++iter)
+	{
+		random[iter] = rand() & 0xFF;
+	}
+	/*
+	tempArray[0] = aFrame.data[0];
+        tempArray[1] = aFrame.data[1];
+        tempArray[2] = aFrame.data[2];
+        tempArray[3] = aFrame.data[3];
+
+        G2_Secrecy_Module(tempArray, secrecySK3, encryptionByte);
+
+        tempArray[0] = aFrame.data[0] ^ encryptionByte[0];
+        tempArray[1] = aFrame.data[1] ^ encryptionByte[1];
+        tempArray[2] = aFrame.data[2] ^ encryptionByte[2];
+        tempArray[3] = aFrame.data[3] ^ encryptionByte[3];
+
+        aFrame.data[0] = secrecySK3[0] ^ tempArray[0];
+        aFrame.data[1] = secrecySK3[1] ^ tempArray[1];
+        aFrame.data[2] = secrecySK3[2] ^ tempArray[2];
+        aFrame.data[3] = secrecySK3[3] ^ tempArray[3];
+        aFrame.data[4] = secrecySK3[4] ^ encryptionByte[0];
+        aFrame.data[5] = secrecySK3[5] ^ encryptionByte[1];
+        aFrame.data[6] = secrecySK3[6] ^ encryptionByte[2];
+        aFrame.data[7] = secrecySK3[7] ^ encryptionByte[3];
+	*/
+	p_data_out[0] = p_data_in[0] ^ random[0] ^ p_sk3[0];
+	p_data_out[1] = p_data_in[1] ^ random[1] ^ p_sk3[1];
+	p_data_out[2] = p_data_in[2] ^ random[2] ^ p_sk3[2];
+	p_data_out[3] = p_data_in[3] ^ random[3] ^ p_sk3[3];
+	p_data_out[4] = random[0] ^ p_sk3[4];
+	p_data_out[5] = random[1] ^ p_sk3[5];
+	p_data_out[6] = random[2] ^ p_sk3[6];
+	p_data_out[7] = random[3] ^ p_sk3[7];
+}
+
+void	SK3_dec(unsigned char * p_data_in,unsigned char * p_sk3,unsigned char * p_data_out)
+{
+	int iter=0;
+	for(iter=0;iter<8;++iter)
+	{
+		p_data_out[iter] = p_data_in[iter] ^ p_sk3[iter];
+	}
+	for(iter=0;iter<4;++iter)
+	{
+		p_data_out[iter] ^= p_data_out[iter+4];
+	}
+}
+
 
 
 char const * g_parse_type_str[] =
