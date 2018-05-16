@@ -16,7 +16,7 @@ do
 	if [ $suffix == "trc" ];then
 		grep -vE '^;' $1 | awk '{printf $2"\t";printf $4"\t";for(i=7;i<=NF;++i){printf $i" "};print ""}' > $tempfile
 	elif [ $suffix == "asc" ];then
-		grep -E '^ ' $1 | awk '{if($2 == "1" && $3 != "Statistic:")print}' | awk '{printf $1"\t";printf $3"\t";for(i=7;i<=14;++i){printf $i" "};print ""}' > $tempfile
+		grep -E '^ ' $1 | awk '{if($2~/[0-9]/&&$3~/[0-9]/)print}' | awk '{printf $1"\t";printf $3"\t";for(i=7;i<=14;++i){printf $i" "};print ""}' > $tempfile
 	else
 		return 1
 	fi
