@@ -360,6 +360,7 @@ bool	CanMatrixInit()
 
 bool	CanMatrixLoadCfg(char const * file_name)
 {
+#if 0
 	char buffer[INPUT_BUFFER_MAX];
 	FILE * file = NULL;
 	file = fopen(file_name,"r");
@@ -384,6 +385,27 @@ bool	CanMatrixLoadCfg(char const * file_name)
 	}
 	else
 		return	false;
+#endif
+	CJsParser jp;
+	if(jp.Init(file_name))
+	{
+		if(jp.FindPath("request"))
+		{
+			if(jp.EnterArray())
+			{
+				while(jp.ParseNext())
+				{
+					string sig_name = jp.GetValue();
+					TySignal i = g_signal_map.find(sig_name);
+					if(g_signal_map.end() != i)
+					{
+						g_signal_req.push_back(i->second);
+					}
+				}
+				jp.ParseUpper();
+			}
+		}
+	}
 }
 
 bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
