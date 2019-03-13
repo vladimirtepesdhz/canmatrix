@@ -1,0 +1,249 @@
+{
+"endia_type" : "motorola"
+,
+"CAN_frame" :
+[
+	{
+		"can_id" : "0x103"
+		,"name" : "TBOX_Remote_Control_Cmd_1"
+	}
+	,
+	{
+		"can_id" : "0x105"
+		,"name" : "TBOX_Remote_Control_Cmd_2"
+	}
+	,
+	{
+		"can_id" : "0x10B"
+		,"name" : "BCM_Remote_Control_Cmd_1"
+	}
+	,
+	{
+		"can_id" : "0x43B"
+		,"name" : "AC_Control_Status"
+	}
+]
+,
+"signals" :
+[
+	{
+		"name" : "TBOX_RMT_State"
+		,"can_id" : "0x103"
+		,"start_bit" : 0
+		,"bits_len" : 8
+		,"min_v" : "1"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0x01" , "name":"Request"}
+			,{"value":"0x02", "name":"Challenge"}
+			,{"value":"0x03", "name":"Response"}
+			,{"value":"0x04", "name":"Authentication Passed"}
+			,{"value":"0x05", "name":"Authentication Failed"}
+			,{"value":"0x06", "name":"Request Update"}
+			,{"value":"0x07", "name":"Request Complete"}
+		]
+	}
+	,
+	{
+		"name" : "TBOXRequestType"
+		,"can_id" : "0x103"
+		,"start_bit" : 16
+		,"bits_len" : 8
+		,"min_v" : "0"
+		,"max_v" : "0x11"
+		,"val_name" :
+		[
+			{"value":"0x00" , "name":"Horn/Lights(Find My Car)"}
+			,{"value":"0x01" , "name":"Lock"}
+			,{"value":"0x02" , "name":"Unlock"}
+			,{"value":"0x03" , "name":"Windows"}
+			,{"value":"0x04" , "name":"Manage Key"}
+			,{"value":"0x11" , "name":"Engine"}
+		]
+	}
+	,
+	{
+		"name" : "BCM_RMT_State"
+		,"can_id" : "0x10B"
+		,"start_bit" : 0
+		,"bits_len" : 8
+		,"min_v" : "1"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0x01" , "name":"Request"}
+			,{"value":"0x02", "name":"Challenge"}
+			,{"value":"0x03", "name":"Response"}
+			,{"value":"0x04", "name":"Authentication Passed"}
+			,{"value":"0x05", "name":"Authentication Failed"}
+			,{"value":"0x06", "name":"Request Update"}
+			,{"value":"0x07", "name":"Request Complete"}
+		]
+	}
+	,
+	{
+		"name" : "ACRemCntrlCmd"
+		,"can_id" : "0x105"
+		,"start_bit" : 5
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"Off/Stop"}
+			,{"value":"0x02", "name":"Blower Only"}
+			,{"value":"0x03", "name":"AUTO"}
+		]
+	}
+	,
+	{
+		"name" : "ACRemCntTmpCntCmd"
+		,"can_id" : "0x105"
+		,"start_bit" : 24
+		,"bits_len" : 6
+		,"min_v" : "0"
+		,"max_v" : "64"
+		,"val_name" :
+		[
+		]
+	}
+	,
+	{
+		"name" : "ACPwrModCntSt"
+		,"can_id" : "0x43B"
+		,"start_bit" : 8
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"Off"}
+			,{"value":"0x02", "name":"On"}
+		]
+	}
+	,
+	{
+		"name" : "ACCompCntSt"
+		,"can_id" : "0x43B"
+		,"start_bit" : 10
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"Off"}
+			,{"value":"0x02", "name":"On"}
+		]
+	}
+	,
+	{
+		"name" : "ACBLwLvlCntSt"
+		,"can_id" : "0x43B"
+		,"start_bit" : 12
+		,"bits_len" : 4
+		,"min_v" : "0"
+		,"max_v" : "0x0F"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"Speed 1"}
+			,{"value":"0x02", "name":"Speed 2"}
+			,{"value":"0x03", "name":"Speed 3"}
+			,{"value":"0x04", "name":"Speed 4"}
+			,{"value":"0x05", "name":"Speed 5"}
+			,{"value":"0x06", "name":"Speed 6"}
+			,{"value":"0x07", "name":"Speed 7"}
+			,{"value":"0x08", "name":"Speed 8"}
+		]
+	}
+	,
+	{
+		"name" : "ACBLwModCntSt"
+		,"can_id" : "0x43B"
+		,"start_bit" : 16
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"Face"}
+			,{"value":"0x02", "name":"Foot"}
+			,{"value":"0x03", "name":"Face & Foot"}
+			,{"value":"0x04", "name":"Defrost & Foot"}
+			,{"value":"0x05", "name":"Defrost"}
+		]
+	}
+	,
+	{
+		"name" : "ACAutoCntRCntSt"
+		,"can_id" : "0x43B"
+		,"start_bit" : 21
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"Off"}
+			,{"value":"0x02", "name":"On"}
+		]
+	}
+	,
+	{
+		"name" : "ACCntTmpCntSt"
+		,"can_id" : "0x43B"
+		,"start_bit" : 24
+		,"bits_len" : 6
+		,"min_v" : "0"
+		,"max_v" : "64"
+		,"val_name" :
+		[	
+		]
+	}
+	,
+	{
+		"name" : "AirCircModCntSt"
+		,"can_id" : "0x43B"
+		,"start_bit" : 30
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"Internal Air Circulation"}
+			,{"value":"0x02", "name":"Outside Air Circulation"}
+		]
+	}
+	,
+	{
+		"name" : "ACRrDefCntRq"
+		,"can_id" : "0x43B"
+		,"start_bit" : 32
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"Off"}
+			,{"value":"0x02", "name":"On"}
+		]
+	}	
+	,
+	{
+		"name" : "ACRem_CtrlFailCaus"
+		,"can_id" : "0x43B"
+		,"start_bit" : 40
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0x01", "name":"前蒸发器温度传感器失效"}
+			,{"value":"0x02", "name":"鼓风机开启失效"}
+			,{"value":"0x03", "name":"变排量压缩机排量控制失效"}
+			,{"value":"0x04", "name":"未收到发动机发送的压缩机吸合指令"}
+			,{"value":"0x05", "name":"环境温度过低（强制制冷时，小于-3℃）"}
+			,{"value":"0x06", "name":"与发动机总线通信失败"}
+		]
+	}	
+]
+}
