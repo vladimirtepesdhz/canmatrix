@@ -22,6 +22,16 @@
 		"can_id" : "0x43B"
 		,"name" : "AC_Control_Status"
 	}
+	,
+	{
+		"can_id" : "0x111"
+		,"name" : "Vehicle_Information_Data_1"
+	}
+	,
+	{
+		"can_id" : "0x119"
+		,"name" : "Vehicle_Information_Data_4"
+	}
 ]
 ,
 "signals" :
@@ -245,5 +255,35 @@
 			,{"value":"0x06", "name":"与发动机总线通信失败"}
 		]
 	}	
+	,
+	{
+		"name" : "EngRunAtv_GW"
+		,"can_id" : "0x111"
+		,"start_bit" : 2
+		,"bits_len" : 1
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0x00", "name":"False"}
+			,{"value":"0x01", "name":"True"}
+		]
+	}	
+	,
+	{
+		"name" : "IgnKyPstn_GW"
+		,"can_id" : "0x119"
+		,"start_bit" : 4 
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0x00", "name":"OFF"}
+			,{"value":"0x01", "name":"ACC"}
+			,{"value":"0x02", "name":"ON"}
+			,{"value":"0x03", "name":"START"}
+		]
+	}
 ]
 }

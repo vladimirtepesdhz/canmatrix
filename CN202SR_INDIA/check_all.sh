@@ -37,6 +37,14 @@ do
 	cat $tempfile | ./canm remote.cfg >> $filename
 	echo '' >> $filename
 
+	echo 'ign:' >> $filename
+	cat $tempfile | ./canm ign.cfg >> $filename
+	echo '' >> $filename
+
+	echo 'engine running:' >> $filename
+	cat $tempfile | ./canm engine_run.cfg >> $filename
+	echo '' >> $filename
+
 	echo 'ac req:' >> $filename
 	cat $tempfile | ./canm 0x105.cfg >> $filename
 	echo '' >> $filename
