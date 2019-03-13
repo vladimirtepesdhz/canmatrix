@@ -10,11 +10,18 @@
 using	namespace	std;
 
 #include "bits.h"
+#include "utils.h"
 #include "json/js_parser.h"
 
 #define	numof(a)	(sizeof(a)/sizeof((a)[0]))
 
 #define	INPUT_BUFFER_MAX	4096
+
+typedef	enum	_EnEndiaType
+{
+	EndiaType_Intel
+	,EndiaType_Motorola
+}EnEndiaType;
 
 typedef	struct 	_StCanIdName
 {
@@ -150,6 +157,8 @@ StCanSignal	g_signal_table[] =
 	,{"EngineSt_EMS",				0xE3,	32,3,	1,7}
 };
 
+EnEndiaType	g_endia_type = EndiaType_Intel;
+
 unsigned char	g_sk3[8] = {0};
 
 vector<CCanFrameInfo>	g_frame_info;
@@ -162,6 +171,30 @@ typedef	map<string,CCanSignal*>::iterator TySignal;
 typedef map<int,CCanFrameInfo*>::iterator	TyCanFrame;
 
 vector<CCanSignal*>	g_signal_req;
+
+u32	GetBits(u8 const * p_data,int data_size,int bits_start,int bits_len)
+{
+	if(EndiaType_Motorola == g_endia_type)
+	{
+		return	GetBits_M(p_data,data_size,bits_start,bits_len);
+	}
+	else
+	{
+		return	GetBits_I(p_data,data_size,bits_start,bits_len);
+	}
+}
+
+void	SetBits(u8 * p_data,int data_size,int bits_start,int bits_len,u32 value)
+{
+	if(EndiaType_Motorola == g_endia_type)
+	{
+		SetBits_M(p_data,data_size,bits_start,bits_len,value);
+	}
+	else
+	{
+		SetBits_I(p_data,data_size,bits_start,bits_len,value);
+	}
+}
 
 void	SK3_enc(unsigned char * p_data_in,unsigned char * p_sk3,unsigned char * p_data_out);
 void	SK3_dec(unsigned char * p_data_in,unsigned char * p_sk3,unsigned char * p_data_out);
@@ -231,6 +264,22 @@ bool	CanMatrixInit()
 		fprintf(stdout,"cannot load default.json\n");
 		return	1;
 	}
+	
+	if(jp.FindPath("endia_type"))
+	{
+		if(CJsParser::JS_PARSE_SINGLE == jp.GetParseType())
+		{
+			if("intel" == jp.GetValue())
+			{
+				g_endia_type = EndiaType_Intel;
+			}
+			else if("motorola" == jp.GetValue())
+			{
+				g_endia_type = EndiaType_Motorola;
+			}
+		}
+	}
+	
 	if(jp.FindPath("CAN_frame"))
 	{
 		if(jp.EnterArray())
@@ -432,7 +481,8 @@ bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
 					SK3_dec(p_frame->can_data,g_sk3,dec);
 				}
 			}
-			value = GetBits_LE32(dec,sizeof(dec),p->start_bit,p->bits_len);
+			//value = GetBits_LE32(dec,sizeof(dec),p->start_bit,p->bits_len);
+			value = GetBits(dec,sizeof(dec),p->start_bit,p->bits_len);
 			if(value >= p->min_v && value <= p->max_v)
 			{
 				valid_signal = true;
@@ -503,6 +553,21 @@ bool	CanMatrixCheckSignal(StCanFrame * p_frame)
 		}
 	}
 	return	false;
+}
+
+void	CanMatrixGetSignals(StCanFrame * p_frame,vector<unsigned int>* p_signals)
+{
+	p_signals->resize(g_signal_req.size());
+	for(int iter=0;iter<g_signal_req.size();++iter)
+	{
+		CCanSignal * p = g_signal_req[iter];
+		(*p_signals)[iter] = 0;
+		if(p_frame->can_id == p->can_id)
+		{
+			//(*p_signals)[iter] = GetBits_LE32(unsigned char const * pdata,int data_size,int offset,int bits_len);
+			(*p_signals)[iter] = GetBits((u8 const *)p_frame->can_data,sizeof(p_frame->can_data),p->start_bit,p->bits_len);
+		}
+	}
 }
 
 void	SK3_enc(unsigned char * p_data_in,unsigned char * p_sk3,unsigned char * p_data_out)
@@ -578,7 +643,11 @@ int	main(int argc,char * argv[])
 	char buffer[INPUT_BUFFER_MAX];
 	StCanFrame last_frame;
 	StFrameStatic frame_stat;
+	vector<unsigned int>	last_sign;
+	vector<unsigned int>	cur_sign;
 
+	last_sign.resize(g_signal_req.size());
+	cur_sign.resize(g_signal_req.size());
 	if(!CanMatrixInit())
 	{
 		fprintf(stdout,"init failed..\n");
@@ -638,7 +707,9 @@ int	main(int argc,char * argv[])
 		//对比重复报文的数据
 		if(true == CanMatrixCheckSignal(&frame))
 		{
-			if((last_frame.can_id == frame.can_id)&&(0 == memcmp(last_frame.can_data,frame.can_data,sizeof(frame.can_data))))
+			//if((last_frame.can_id == frame.can_id)&&(0 == memcmp(last_frame.can_data,frame.can_data,sizeof(frame.can_data))))
+			CanMatrixGetSignals(&frame,&cur_sign);
+			if((last_frame.can_id == frame.can_id)&&(last_sign == cur_sign))
 			{
 				frame_stat.end_time = frame.timestamp;
 				++frame_stat.frame_cnt;
@@ -655,6 +726,7 @@ int	main(int argc,char * argv[])
 				frame_stat.frame_cnt = 1;
 			}
 			last_frame = frame;
+			last_sign.assign(cur_sign.begin(),cur_sign.end());
 		}
 	}
 	CanMatrixPrintSignal(&last_frame,&frame_stat);
