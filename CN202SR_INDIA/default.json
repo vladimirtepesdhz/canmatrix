@@ -19,6 +19,11 @@
 	}
 	,
 	{
+		"can_id" : "0x102"
+		,"name" : "BCM_Remote_Control_Cmd_2"
+	}
+	,
+	{
 		"can_id" : "0x43B"
 		,"name" : "AC_Control_Status"
 	}
@@ -89,6 +94,48 @@
 			,{"value":"0x05", "name":"Authentication Failed"}
 			,{"value":"0x06", "name":"Request Update"}
 			,{"value":"0x07", "name":"Request Complete"}
+		]
+	}
+	,
+	{
+		"name" : "VehCntrlSt"
+		,"can_id" : "0x102"
+		,"start_bit" : 8
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0x01" , "name":"Remote Start(远程启动)"}
+			,{"value":"0x02", "name":"Bluetooth Key Control(蓝牙钥匙控制)"}
+		]
+	}
+	,
+	{
+		"name" : "Rem_EngStaCmdVal"
+		,"can_id" : "0x102"
+		,"start_bit" : 16
+		,"bits_len" : 1
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0x0" , "name":"Valid"}
+			,{"value":"0x1", "name":"Invalid"}
+		]
+	}
+	,
+	{
+		"name" : "Rem_EngStaCmd"
+		,"can_id" : "0x102"
+		,"start_bit" : 17
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0x0" , "name":"not start"}
+			,{"value":"0x1", "name":"start"}
 		]
 	}
 	,
