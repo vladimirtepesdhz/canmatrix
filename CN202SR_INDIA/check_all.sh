@@ -54,7 +54,7 @@ do
 	echo '' >> $filename
 
 	echo 'ac resp:' >> $filename
-	cat $tempfile | ./canm 0x43B.cfg >> $filename
+	cat $tempfile | ./canm ac.cfg >> $filename
 	echo '' >> $filename
 
 	shift

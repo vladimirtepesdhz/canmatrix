@@ -457,7 +457,7 @@ bool	CanMatrixLoadCfg(char const * file_name)
 	}
 }
 
-bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
+bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static,vector<int>* p_modify)
 {
 	bool first_print = false;
 	bool valid_signal = false;
@@ -514,7 +514,15 @@ bool	CanMatrixPrintSignal(StCanFrame * p_frame,StFrameStatic * p_static)
 						}
 					}
 				}
-				fprintf(stdout,"\t%s = 0x%X ",p->sign_name.c_str(),(int)value);
+				//fprintf(stdout,"\t%s = 0x%X ",p->sign_name.c_str(),(int)value);
+#if 1
+				fprintf(stdout,"\t");
+				if(p_modify && ((*p_modify)[iter] == 1))
+				{
+					fprintf(stdout,"* ");
+				}
+				fprintf(stdout,"%s = 0x%X ",p->sign_name.c_str(),(int)value);
+#endif
 				for(int j=0;j<p->val_name.size();++j)
 				{
 					if(value == p->val_name[j].value)
@@ -645,9 +653,8 @@ int	main(int argc,char * argv[])
 	StFrameStatic frame_stat;
 	vector<unsigned int>	last_sign;
 	vector<unsigned int>	cur_sign;
+	vector<int>				modify;
 
-	last_sign.resize(g_signal_req.size());
-	cur_sign.resize(g_signal_req.size());
 	if(!CanMatrixInit())
 	{
 		fprintf(stdout,"init failed..\n");
@@ -657,6 +664,9 @@ int	main(int argc,char * argv[])
 	{
 		CanMatrixLoadCfg(argv[iter]);
 	}
+	last_sign.resize(g_signal_req.size());
+	cur_sign.resize(g_signal_req.size());
+	modify.resize(g_signal_req.size(),1);
 
 	last_frame.timestamp = 0.0;
 	last_frame.can_id = 0;
@@ -719,8 +729,30 @@ int	main(int argc,char * argv[])
 				//解析报文数据
 				if(0 != last_frame.can_id)
 				{
-					valid_signal = CanMatrixPrintSignal(&last_frame,&frame_stat);
+					valid_signal = CanMatrixPrintSignal(&last_frame,&frame_stat,&modify);
 				}
+#if 1
+				if(last_frame.can_id != frame.can_id)
+				{
+					modify.clear();
+					modify.resize(g_signal_req.size(),1);
+				}
+				else
+				{
+					//modify.resize(g_signal_req.size(),0);
+					for(int iter=0;iter<g_signal_req.size();++iter)
+					{
+						if(last_sign[iter] == cur_sign[iter])
+						{
+							modify[iter] = 0;
+						}
+						else
+						{
+							modify[iter] = 1;
+						}
+					}
+				}
+#endif
 				frame_stat.start_time = frame.timestamp;
 				frame_stat.end_time = frame.timestamp;
 				frame_stat.frame_cnt = 1;
@@ -729,7 +761,7 @@ int	main(int argc,char * argv[])
 			last_sign.assign(cur_sign.begin(),cur_sign.end());
 		}
 	}
-	CanMatrixPrintSignal(&last_frame,&frame_stat);
+	CanMatrixPrintSignal(&last_frame,&frame_stat,&modify);
 
 #endif
 
