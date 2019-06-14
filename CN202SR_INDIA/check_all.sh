@@ -14,9 +14,14 @@ do
 
 	suffix=$(echo $suffix | tr [A-Z] [a-z])
 	if [ $suffix == "trc" ];then
-		grep -vE '^;' $1 | awk '{printf $2"\t";printf $4"\t";for(i=7;i<=NF;++i){printf $i" "};print ""}' > $tempfile
+		version=$(cat $1 | grep -iE 'FILEVERSION')
+		if [ $version == ';$FILEVERSION=2.0' ];then
+			grep -vE '^;' $1 | awk '{printf $2"\t";printf $4"\t";for(i=7;i<=NF;++i){printf $i" "};print ""}' > $tempfile
+		elif [ $version == ';$FILEVERSION=1.1' ];then
+			grep -vE '^;' $1 | awk '{printf $2"\t";printf $4"\t";for(i=6;i<=NF;++i){printf $i" "};print ""}' > $tempfile
+		fi
 	elif [ $suffix == "asc" ];then
-		grep -E '^ ' $1 | awk '{if($2~/[0-9]/&&$3~/[0-9]/)print}' | awk '{printf $1"\t";printf $3"\t";for(i=7;i<=14;++i){printf $i" "};print ""}' > $tempfile
+		cat $1 | awk '{if($1~/^[0-9]/&&$2~/^[0-9]/&&$3~/^[0-9a-fA-F][0-9a-fA-F]*/)print}' | awk '{printf $1"\t";printf $3"\t";for(i=7;i<=14;++i){printf $i" "};print ""}' > $tempfile
 	else
 		return 1
 	fi
@@ -55,6 +60,22 @@ do
 
 	echo 'ac resp:' >> $filename
 	cat $tempfile | ./canm ac.cfg >> $filename
+	echo '' >> $filename
+
+	echo 'fuel:' >> $filename
+	cat $tempfile | ./canm fuel.cfg >> $filename
+	echo '' >> $filename
+
+	echo 'dist:' >> $filename
+	cat $tempfile | ./canm dist.cfg >> $filename
+	echo '' >> $filename
+
+	echo 'odometer:' >> $filename
+	cat $tempfile | ./canm odometer.cfg >> $filename
+	echo '' >> $filename
+
+	echo '$471:' >> $filename
+	cat $tempfile | ./canm 0x471.cfg >> $filename
 	echo '' >> $filename
 
 	shift

@@ -39,8 +39,23 @@
 	}
 	,
 	{
+		"can_id" : "0x120"
+		,"name" : "Vehicle_Odometer"
+	}
+	,
+	{
 		"can_id" : "0x11D"
 		,"name" : "Vehicle__Information_Data_5"
+	}
+	,
+	{
+		"can_id" : "0x471"
+		,"name" : "Platform_IC_Indication_Data_3"
+	}
+	,
+	{
+		"can_id" : "0x475"
+		,"name" : "Platform_IC_Indication_Data_3"
 	}
 ]
 ,
@@ -180,8 +195,8 @@
 		,"max_v" : "3"
 		,"val_name" :
 		[
-			{"value":"0x01", "name":"Off"}
-			,{"value":"0x02", "name":"On"}
+			{"value":"0x01", "name":"Off 空调电源模式:关闭"}
+			,{"value":"0x02", "name":"On 空调电源模式:打开"}
 		]
 	}
 	,
@@ -194,8 +209,8 @@
 		,"max_v" : "3"
 		,"val_name" :
 		[
-			{"value":"0x01", "name":"Off"}
-			,{"value":"0x02", "name":"On"}
+			{"value":"0x01", "name":"Off 空调压缩机状态:关闭"}
+			,{"value":"0x02", "name":"On 空调压缩机状态:打开"}
 		]
 	}
 	,
@@ -245,8 +260,8 @@
 		,"max_v" : "3"
 		,"val_name" :
 		[
-			{"value":"0x01", "name":"Off"}
-			,{"value":"0x02", "name":"On"}
+			{"value":"0x01", "name":"Off 自动空调控制状态:关闭"}
+			,{"value":"0x02", "name":"On 自动空调控制状态:打开"}
 		]
 	}
 	,
@@ -461,6 +476,101 @@
 			,{"value":"3", "name":"Face & Foot"}
 			,{"value":"4", "name":"Defrost & Foot"}
 			,{"value":"5", "name":"Defrost"}
+		]
+	}
+
+	,
+	{
+		"name" : "PrkBrkSwAtv_IC"
+		,"can_id" : "0x471"
+		,"start_bit" : 47
+		,"bits_len" : 1
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0", "name":"False"}
+			,{"value":"1", "name":"True"}
+		]
+	}
+
+	,
+	{
+		"name" : "FlLvlPctV_IC"
+		,"can_id" : "0x475"
+		,"start_bit" : "2"
+		,"bits_len" : "1"
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0", "name":"Valid"}
+			,{"value":"1", "name":"Invalid"}
+		]
+	}
+	,
+	{
+		"name" : "FlLvLwIO_IC"
+		,"can_id" : "0x475"
+		,"start_bit" : "3"
+		,"bits_len" : "1"
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0", "name":"False"}
+			,{"value":"1", "name":"True 燃油液位低报警"}
+		]
+	}
+	,
+	{
+		"name" : "DistToEmpt_IC"
+		,"can_id" : "0x475"
+		,"start_bit" : "6"
+		,"bits_len" : "10"
+		,"min_v" : "0"
+		,"max_v" : "1023"
+		,"val_name" :
+		[
+		]
+	}
+	,
+	{
+		"name" : "FlLvlPct_IC"
+		,"can_id" : "0x475"
+		,"start_bit" : "48"
+		,"bits_len" : "8"
+		,"min_v" : "0"
+		,"max_v" : "255"
+		,"val_name" :
+		[
+		]
+	}
+
+	,
+	{
+		"name" : "VehOdo"
+		,"can_id" : "0x120"
+		,"start_bit" : "0"
+		,"bits_len" : "32"
+		,"min_v" : "0"
+		,"max_v" : "0xFFFFFFFF"
+		,"val_name" :
+		[
+		]
+	}
+	,
+	{
+		"name" : "VehOdoV"
+		,"can_id" : "0x120"
+		,"start_bit" : "39"
+		,"bits_len" : "1"
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0", "name":"Valid"}
+			,{"value":"1", "name":"Invalid"}
 		]
 	}
 ]
