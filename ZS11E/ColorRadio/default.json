@@ -1,0 +1,608 @@
+{
+"endia_type" : "motorola"
+,
+"CAN_frame" :
+[
+	{
+		"can_id" : "0x2F6"
+		,"name" : "FICM_HSC4_FrP08"
+	}
+	,{
+		"can_id" : "0x37D"
+		,"name" : "FICM_HSC4_FrP18"
+	}
+	,{
+		"can_id" : "0xD6"
+		,"name" : "FICM_HSC4_FrP15"
+	}
+	,{
+		"can_id" : "0x36B"
+		,"name" : "FICM_HSC4_FrP01"
+	}	
+	,{
+		"can_id" : "0x336"
+		,"name" : "FICM_HSC4_FrP33"
+	}
+	,{
+		"can_id" : "0x246"
+		,"name" : "GW_HSC4_Radar_FrP02"
+	}
+	,{
+		"can_id" : "0x167"
+		,"name" : "GW_HSC4_FVCM_FrP02"
+	}
+	,{
+		"can_id" : "0x166"
+		,"name" : "GW_HSC4_FVCM_FrP01"
+	}
+	,{
+		"can_id" : "0x178"
+		,"name" : "RDA_HSC4_P01"
+	}
+	,{
+		"can_id" : "0x204"
+		,"name" : "RDA_HSC4_P02"
+	}
+	,{
+		"can_id" : "0x232"
+		,"name" : "GW_HSC4_SCS_FrP06"
+	}
+	,{
+		"can_id" : "0x36C"
+		,"name" : "PACM_HSC4_FrP00"
+	}
+	,{
+		"can_id" : "0x38B"
+		,"name" : "GW_HSC4_HCU_FrP07"
+	}
+	,{
+		"can_id" : "0xFB"
+		,"name" : "GW_HSC4_ECM_FrP27"
+	}
+	,{
+		"can_id" : "0x23F"
+		,"name" : "GW_HSC4_BCM_PDC_FrP00"
+	}
+]
+,
+"signals" :
+[
+	{
+		"name" : "FCWSwReqHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 44
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"on"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+	,
+	{
+		"name" : "FCWDspCmd_RadarHSC4"
+		,"can_id" : "0x246"
+		,"start_bit" : 50
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"unavailable"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"on"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+
+
+	,{
+		"name" : "FCWSnstvtLvlReqHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 50
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"level1 (low)"}
+			,{"value":"2" , "name":"level2 (on)"}
+			,{"value":"3" , "name":"level3 (high)"}
+		]
+	}
+	,
+	{
+		"name" : "FCWSnstvtLvl_RadarHSC4"
+		,"can_id" : "0x246"
+		,"start_bit" : 42
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"unavailable"}
+			,{"value":"1" , "name":"level1 (low)"}
+			,{"value":"2" , "name":"level2 (on)"}
+			,{"value":"3" , "name":"level3 (high)"}
+		]
+	}
+
+	,{
+		"name" : "LDWLKASwReqHSC4"
+		,"can_id" : "0x37D"
+		,"start_bit" : 61
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"LDW"}
+			,{"value":"3" , "name":"LDP"}
+			,{"value":"4" , "name":"LKA"}
+		]
+	}
+	,
+	{
+		"name" : "LDWLKADspCmdHSC4"
+		,"can_id" : "0x167"
+		,"start_bit" : 53
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"unavailable"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"LDW"}
+			,{"value":"3" , "name":"LDP"}
+			,{"value":"4" , "name":"LKA"}
+		]
+	}
+	
+	,
+	{
+		"name" : "LDWSnstvtLvlReqHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 40
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"Low"}
+			,{"value":"2" , "name":"Standard"}
+			,{"value":"3" , "name":"High"}
+		]
+	}
+	,{
+		"name" : "LDWSnstvtLvlHSC4"
+		,"can_id" : "0x166"
+		,"start_bit" : 16
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"unavailable"}
+			,{"value":"1" , "name":"Low"}
+			,{"value":"2" , "name":"Standard"}
+			,{"value":"3" , "name":"High"}
+		]
+	}
+
+	,{
+		"name" : "LDWAdoWrnngReqHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 54
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"on"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+	,{
+		"name" : "LDWAdoWrnngDspCmdHSC4"
+		,"can_id" : "0x166"
+		,"start_bit" : 32
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"unavailable"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"on"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+	
+
+	,
+	{
+		"name" : "LDWLKAHapticWrnngReqHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 42
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"on"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+	,
+	{
+		"name" : "LDWLKAHapticWrnngDspCmdHSC4"
+		,"can_id" : "0x167"
+		,"start_bit" : 56
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"unavailable"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"on"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+
+	,{
+		"name" : "RDASwReqHSC4"
+		,"can_id" : "0xD6"
+		,"start_bit" : 8
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off request"}
+			,{"value":"2" , "name":"on request"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}	
+	,{
+		"name" : "RDASwStsHSC4"
+		,"can_id" : "0x178"
+		,"start_bit" : 4
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"on"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"disable"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+
+	,{
+		"name" : "BSDSelReqHSC4"
+		,"can_id" : "0xD6"
+		,"start_bit" : 0
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off request"}
+			,{"value":"2" , "name":"on request"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+	,{
+		"name" : "BSDSelStsHSC4"
+		,"can_id" : "0x178"
+		,"start_bit" : 0
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"on"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"disable"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+
+
+	,{
+		"name" : "LCASelReqHSC4"
+		,"can_id" : "0xD6"
+		,"start_bit" : 6
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off request"}
+			,{"value":"2" , "name":"on request"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+	,{
+		"name" : "LCASelStsHSC4"
+		,"can_id" : "0x178"
+		,"start_bit" : 2
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"on"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"disable"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+		
+	,{
+		"name" : "RCTASelReqHSC4"
+		,"can_id" : "0xD6"
+		,"start_bit" : 10
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off request"}
+			,{"value":"2" , "name":"on request"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+	,{
+		"name" : "RCTASelStsHSC4"
+		,"can_id" : "0x204"
+		,"start_bit" : 12
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"on"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"disable"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+
+
+	,{
+		"name" : "HDCReqHSC4"
+		,"can_id" : "0x37D"
+		,"start_bit" : 56
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"No request"}
+			,{"value":"1" , "name":"Active HDC"}
+			,{"value":"2" , "name":"Deactive HDC"}
+			,{"value":"3" , "name":"Pressed HDC Button"}
+		]
+	}	
+	,{
+		"name" : "HDCSysStsHSC4"
+		,"can_id" : "0x232"
+		,"start_bit" : 48
+		,"bits_len" : 3
+		,"min_v" : "0"
+		,"max_v" : "7"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"Normal"}
+			,{"value":"1" , "name":"Enable"}
+			,{"value":"2" , "name":"Active"}
+			,{"value":"3" , "name":"Failed"}
+			,{"value":"4" , "name":"Temporarily Inhibited"}	
+		]
+	}
+
+
+	,{
+		"name" : "PDCSwReqHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 58
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"No press"}
+			,{"value":"1" , "name":"Short press"}
+			,{"value":"2" , "name":"Long press"}
+			,{"value":"3" , "name":"Reserved"}
+		]
+	}	
+	,{
+		"name" : "BCMPDCSysStsHSC4"
+		,"can_id" : "0x23F"
+		,"start_bit" : 0
+		,"bits_len" : 4
+		,"min_v" : "0"
+		,"max_v" : "15"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"System OK"}
+			,{"value":"1" , "name":"System initialization"}
+			,{"value":"2" , "name":"System Failed"}
+			,{"value":"3" , "name":"System Disabled"}
+			,{"value":"4" , "name":"Front PDC Disabled"}
+			,{"value":"5" , "name":"Front PDC Failed"}
+			,{"value":"6" , "name":"Rear PDC Failed"}
+			,{"value":"7" , "name":"Rear PDC Disabled"}
+		]
+	}
+
+
+	,{
+		"name" : "PedtrnAlrtInhSwReqHSC4"
+		,"can_id" : "0x36B"
+		,"start_bit" : 61
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"No press"}
+			,{"value":"1" , "name":"Short press"}
+			,{"value":"2" , "name":"Long press"}
+			,{"value":"3" , "name":"Reserved"}
+		]
+	}
+	
+	,{
+		"name" : "PedtrnAlrtInhHSC4"
+		,"can_id" : "0x36C"
+		,"start_bit" : 6
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"On"}
+			,{"value":"1" , "name":"Off"}
+			,{"value":"2" , "name":"Unavailable"}
+			,{"value":"3" , "name":"Reserved"}
+		]
+	}
+
+	,{
+		"name" : "SLIFWrnngStsReqVHSC4"
+		,"can_id" : "0x336"
+		,"start_bit" : 18
+		,"bits_len" : 1
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"Valid"}
+			,{"value":"1" , "name":"Invalid"}
+		]
+	}
+	,{
+		"name" : "SLIFWrnngStsReqHSC4"
+		,"can_id" : "0x336"
+		,"start_bit" : 19
+		,"bits_len" : 1
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"SLIF with warning"}
+			,{"value":"1" , "name":"SLIF without warning"}
+		]
+	}
+	,{
+		"name" : "SLIFWrngStsRespHSC4"
+		,"can_id" : "0x38B"
+		,"start_bit" : 39
+		,"bits_len" : 1
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"SLIF with warning"}
+			,{"value":"1" , "name":"SLIF without warning"}
+		]
+	}
+
+
+	,{
+		"name" : "SpdAstMdFICMVHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 0
+		,"bits_len" : 1
+		,"min_v" : "0"
+		,"max_v" : "1"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"Valid"}
+			,{"value":"1" , "name":"Invalid"}
+		]
+	}
+	,{
+		"name" : "SpdAstMdFICMHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 32
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"Off"}
+			,{"value":"1" , "name":"SLIF"}
+			,{"value":"2" , "name":"MSA"}
+			,{"value":"3" , "name":"ISA"}
+		]
+	}	
+	,{
+		"name" : "SpdAstMdECMHSC4"
+		,"can_id" : "0xFB"
+		,"start_bit" : 19
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"Off"}
+			,{"value":"1" , "name":"SLIF"}
+			,{"value":"2" , "name":"MSA"}
+			,{"value":"3" , "name":"ISA"}
+		]
+	}
+
+	,{
+		"name" : "TJAICASwReqHSC4"
+		,"can_id" : "0x2F6"
+		,"start_bit" : 56
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"no request"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"on"}
+			,{"value":"3" , "name":"reserved"}
+		]
+	}
+	,{
+		"name" : "TJAICADspCmdHSC4"
+		,"can_id" : "0x167"
+		,"start_bit" : 48
+		,"bits_len" : 2
+		,"min_v" : "0"
+		,"max_v" : "3"
+		,"val_name" :
+		[
+			{"value":"0" , "name":"unavailable"}
+			,{"value":"1" , "name":"off"}
+			,{"value":"2" , "name":"on"}
+		]
+	}
+]
+}
